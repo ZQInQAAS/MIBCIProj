@@ -10,7 +10,7 @@ class VRInterface(Interface):
         Interface.__init__(self, main_cfg)
         self.PUB_address = 'tcp://*:12345'
         self.REP_address = 'tcp://*:12346'
-        self.pname = 'D:\\Users\\63518\\UnityEXE\\3\\Unity3D FPS Handy Hands.exe'
+        self.pname = 'D:\\Users\\63518\\UnityEXE\\4\\Unity3D FPS Handy Hands.exe'
 
     def start(self):
         subprocess.Popen(self.pname)
@@ -72,3 +72,8 @@ class VRInterface(Interface):
     def send_animation_ctrl(self, is_stop):
         self.send_message({'Type': 'animation_ctrl', 'Stop': is_stop, 'Online': True})
 
+    def send_progress(self, progress):
+        self.send_message({'Type': 'progress', 'Progress': progress})
+
+    def online_feedback(self, predict):
+        self.send_animation_ctrl(is_stop=bool(1-predict))
