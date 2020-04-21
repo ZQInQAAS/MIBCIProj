@@ -3,7 +3,7 @@ import zmq
 import subprocess
 from CueInterface import Interface
 from BCIEnum import StimType, BCIEvent
-
+from windows.ExoskeletonWindow import ExoskeletonWindow
 
 class VRInterface(Interface):
     def __init__(self, main_cfg):
@@ -32,6 +32,8 @@ class VRInterface(Interface):
             return
         if stim == StimType.ExperimentStart:
             self.stim_to_message('ExpStart', '', '', False)
+            self.send_message({'gesture': ExoskeletonWindow.gesture})
+            self.send_message({'highpoint': ExoskeletonWindow.highpoint})
             return
         if stim == StimType.StartOfTrial:
             self.stim_to_message('StartTrial', '', '', False)

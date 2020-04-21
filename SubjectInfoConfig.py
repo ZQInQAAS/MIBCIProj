@@ -4,17 +4,21 @@ import datetime
 
 com_num_set = {'elbow': {'left': 53, 'right': 53},
                'wrist': {'left': 7, 'right': 7},
-               'forearm': {'left': 7, 'right': 7}}
+               'forearm': {'left': 7, 'right': 7},
+               'hand': {'left': 7, 'right': 7}}
 # 最高/左  最低/右
 exo_position = {'elbow': {'left': {'highest_point': 1250, 'lowest_point': 250},
                           'right': {'highest_point': 1400, 'lowest_point': 2200}},
                 'wrist': {'left': {'highest_point': 50, 'lowest_point': 50},
                           'right': {'highest_point': 50, 'lowest_point': 50}},
                 'forearm': {'left': {'highest_point': 50, 'lowest_point': 50},
-                            'right': {'highest_point': 50, 'lowest_point': 50}}}
+                            'right': {'highest_point': 50, 'lowest_point': 50}},
+                'hand': {'left': {'highest_point': 50, 'lowest_point': 50},
+                         'right': {'highest_point': 50, 'lowest_point': 50}}}
 exo_velocity = {'elbow': {'left': 30, 'right': 30},
                 'wrist': {'left': 5, 'right': 5},
-                'forearm': {'left': 5, 'right': 5}}
+                'forearm': {'left': 5, 'right': 5},
+                'hand': {'left': 5, 'right': 5}}
 
 
 class SubjectInfoConfig(object):
@@ -31,10 +35,14 @@ class SubjectInfoConfig(object):
                              'wrist': {'left': {'highest_point': None, 'lowest_point': None},
                                        'right': {'highest_point': None, 'lowest_point': None}},
                              'forearm': {'left': {'highest_point': None, 'lowest_point': None},
-                                         'right': {'highest_point': None, 'lowest_point': None}}}
+                                         'right': {'highest_point': None, 'lowest_point': None}},
+                             'hand': {'left': {'highest_point': None, 'lowest_point': None},
+                                      'right': {'highest_point': None, 'lowest_point': None}}}
+
         self.exo_velocity = {'elbow': {'left': None, 'right': None},
                              'wrist': {'left': None, 'right': None},
-                             'forearm': {'left': None, 'right': None}}
+                             'forearm': {'left': None, 'right': None},
+                             'hand': {'left': None, 'right': None}}
 
     def set_subject(self, subject_name):
         self.subject_name = subject_name
