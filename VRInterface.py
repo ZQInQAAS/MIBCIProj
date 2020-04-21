@@ -3,11 +3,14 @@ import zmq
 import subprocess
 from CueInterface import Interface
 from BCIEnum import StimType, BCIEvent
-from windows.ExoskeletonWindow import ExoskeletonWindow
+
 
 class VRInterface(Interface):
     def __init__(self, main_cfg):
         Interface.__init__(self, main_cfg)
+        self.gesture = main_cfg.subject.exo_type
+        self.highpoint, _ = main_cfg.subject.get_exo_position()
+        print(self.gesture, self.highpoint)
         self.PUB_address = 'tcp://*:12345'
         self.REP_address = 'tcp://*:12346'
         self.pname = 'D:\\Users\\63518\\UnityEXE\\4\\Unity3D FPS Handy Hands.exe'
@@ -32,8 +35,8 @@ class VRInterface(Interface):
             return
         if stim == StimType.ExperimentStart:
             self.stim_to_message('ExpStart', '', '', False)
-            self.send_message({'gesture': ExoskeletonWindow.gesture})
-            self.send_message({'highpoint': ExoskeletonWindow.highpoint})
+            self.send_message({'gesture': self.gesture})
+            self.send_message({'highpoint': self.highpoint})
             return
         if stim == StimType.StartOfTrial:
             self.stim_to_message('StartTrial', '', '', False)
