@@ -15,6 +15,7 @@ class VRInterface(Interface):
         self.PUB_address = 'tcp://*:12345'
         self.REP_address = 'tcp://*:12346'
         self.pname = 'C:\\Users\\HEDY\\Desktop\\hand_VR\\Unity3D FPS Handy Hands.exe'
+        # self.pname = 'C:\\Users\\HEDY\\Desktop\\word_VR\\Unity3D FPS Handy Hands.exe'
 
     def start(self):
         subprocess.Popen(self.pname)
@@ -65,7 +66,6 @@ class VRInterface(Interface):
             return
         if stim == StimType.ExperimentStop:
             self.stim_to_message('ExpStop', '', '', False)
-            self.publish(BCIEvent.cue_disconnect)
             self.rep.close()
             self.pub.close()
             return

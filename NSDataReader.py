@@ -64,12 +64,13 @@ class NSDataReader(object):
         self.data_time.append(time())
 
     def stop_data_reader(self):
+        self.repeat_timer.cancel()
         self._send_command_to_ns(3, 4)
         self._send_command_to_ns(2, 2)
         self._send_command_to_ns(1, 2)
         sleep(0.1)
-        self.repeat_timer.cancel()
         self.socket.close()
+
 
     def get_ns_signal(self, duration=None):
         signal = np.array(self.signal)
@@ -105,6 +106,9 @@ class NSDataReaderRandom(object):
         data = (10 * np.random.randn(400)).tolist()
         self.signal += [data[i: i + self.ch_num] for i in range(0, len(data), self.ch_num)]
         self.data_time.append(time())
+
+    def stop_data_reader(self):
+        print('Close neuroscan random server.')
 
     def get_ns_signal(self, duration=None):
         signal = np.array(self.signal)

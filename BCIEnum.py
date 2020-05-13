@@ -9,7 +9,7 @@ class BCIEvent(Enum):
     online_ctrl = 5
     gaze_focus = 6
     cue_disconnect = 7
-    save_data = 8
+    stim_stop = 8
 
 
 classStimList = ('left', 'right', 'rest')

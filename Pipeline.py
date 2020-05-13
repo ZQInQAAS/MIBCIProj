@@ -25,8 +25,8 @@ class Pipeline(object):
         self.stim.subscribe(BCIEvent.change_stim, main_cfg.exo.handle_stim)
         self.cue.subscribe(BCIEvent.gaze_focus, self.stim.get_gaze)
         self.cue.subscribe(BCIEvent.cue_disconnect, self.stim.stop_stim)
-        self.stim.subscribe(BCIEvent.save_data, self.save_data)
-        self.stim.subscribe(BCIEvent.save_data, self.ns_reader.stop_data_reader)
+        self.stim.subscribe(BCIEvent.stim_stop, self.save_data)
+        self.stim.subscribe(BCIEvent.stim_stop, self.ns_reader.stop_data_reader)
         if self.is_online:
             self.processor = Processor(main_cfg)
             self.processor.subscribe(BCIEvent.readns_header, self.ns_reader.get_head_settings)
@@ -35,7 +35,7 @@ class Pipeline(object):
             self.processor.subscribe(BCIEvent.online_progressbar, self.cue.send_progress)
             self.processor.subscribe(BCIEvent.online_ctrl, self.cue.online_feedback)
             self.processor.subscribe(BCIEvent.online_ctrl, main_cfg.exo.online_feedback)
-            self.stim.subscribe(BCIEvent.save_data, self.processor.save_log)
+            self.stim.subscribe(BCIEvent.stim_stop, self.processor.save_log)
 
     def start(self):
         self.ns_reader.start()

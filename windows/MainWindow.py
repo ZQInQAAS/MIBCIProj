@@ -106,7 +106,7 @@ class MainWindow(wx.Frame):
         self.TrainModelBtn.Bind(wx.EVT_BUTTON, self.on_train_model)
 
     def on_new_subject(self, event):
-        # 新建被试名文件夹
+        # 新建被试
         new_subject_dlg = wx.TextEntryDialog(self, '输入新被试名：', '新建被试')
         if new_subject_dlg.ShowModal() == wx.ID_OK:
             new_subject_name = new_subject_dlg.GetValue()

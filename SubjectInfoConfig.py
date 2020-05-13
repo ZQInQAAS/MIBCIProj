@@ -49,6 +49,8 @@ class SubjectInfoConfig(object):
         self.subject_dir = self.dataset_dir + '/' + self.subject_name
         if os.path.exists(self.dataset_dir):
             self.make_dir(self.subject_dir)
+            # self.set_date_dir()
+
 
     def set_date_dir(self):
         date = datetime.datetime.now().strftime('%Y%m%d')

@@ -34,7 +34,7 @@ class Stimulator(PyPublisher):
                 print(time(), stim)
             self.publish(BCIEvent.change_stim, stim)
             if stim == StimType.ExperimentStop:
-                self.publish(BCIEvent.save_data)
+                self.publish(BCIEvent.stim_stop)
             self.wait_event.clear()
             if duration != None:
                 self.wait_event.wait(duration)
@@ -47,5 +47,5 @@ class Stimulator(PyPublisher):
 
     def stop_stim(self):  # 界面中断
         self.stim_list.append((time(), StimType.Disconnect.value))
-        self.publish(BCIEvent.save_data)
+        self.publish(BCIEvent.stim_stop)
         # self.thread_stim.join()
