@@ -14,10 +14,10 @@ class VRInterface(Interface):
         print(self.gesture, self.highpoint)
         self.PUB_address = 'tcp://*:12345'
         self.REP_address = 'tcp://*:12346'
-        self.pname = 'D:\\Users\\63518\\UnityEXE\\6\\Unity3D FPS Handy Hands.exe'
+        self.pname = 'C:\\Users\\HEDY\\Desktop\\hand_VR\\Unity3D FPS Handy Hands.exe'
 
     def start(self):
-        # subprocess.Popen(self.pname)
+        subprocess.Popen(self.pname)
         context = zmq.Context()
         self.pub = context.socket(zmq.PUB)
         self.rep = context.socket(zmq.REP)
@@ -45,7 +45,7 @@ class VRInterface(Interface):
         if stim == StimType.MoveUp:
             self.stim_to_message('MoveUp', self.class_name, 'move', self.is_online)
             if self.class_name == 'left':
-                with open('C:\\Users\\63518\\Desktop\\python_timedata.txt', 'a') as file:
+                with open('C:\\Users\\HEDY\\Desktop\\python_timedata.txt', 'a') as file:
                     timedata = datetime.datetime.now().strftime('%H:%M:%S.%f')
                     file.writelines(timedata + '\n')
                     file.close()

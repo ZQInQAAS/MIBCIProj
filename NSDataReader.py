@@ -10,8 +10,8 @@ from time import sleep, time
 class NSDataReader(object):
     def __init__(self):
         # self.address = '192.168.11.123', 9889  # 有线
-        # self.address = '10.168.2.164', 9889  # QAAS_Bridge wifi
-        self.address = '192.168.43.166', 9889
+        self.address = '10.168.2.164', 9889  # QAAS_Bridge wifi
+        # self.address = '192.168.43.166', 9889
         self.socket = socket.socket()
         self.socket.settimeout(15)
         self.repeat_timer = RepeatingTimer(0.02, self._read_data)  # 循环时间应<0.02
@@ -34,16 +34,16 @@ class NSDataReader(object):
         req = int.from_bytes(self.BasicInfo[6:8], byteorder='big')
         size = int.from_bytes(self.BasicInfo[8:12], byteorder='big')
         if code == 1 and req == 3 and size == 28 and len(self.BasicInfo) == 40:
-            # self.Bsize = int.from_bytes(self.BasicInfo[12:16], byteorder='little')
-            # self.BEegChannelNum = int.from_bytes(self.BasicInfo[16:20], byteorder='little')
-            # self.BEventChannelNum = int.from_bytes(self.BasicInfo[20:24], byteorder='little')
-            # self.BlockPnts = int.from_bytes(self.BasicInfo[24:28], byteorder='little')
-            # self.BSampleRate = int.from_bytes(self.BasicInfo[28:32], byteorder='little')
-            # self.BDataSize = int.from_bytes(self.BasicInfo[32:36], byteorder='little')
-            # self.BResolution = struct.unpack('<f', self.BasicInfo[36:40])[0]
-            (self.Bsize, self.BEegChannelNum, self.BEventChannelNum,
-             self.BlockPnts, self.BSampleRate, self.BDataSize,
-             self.BResolution) = struct.unpack_from('<iiiiiif', self.BasicInfo, 12)
+            self.Bsize = int.from_bytes(self.BasicInfo[12:16], byteorder='little')
+            self.BEegChannelNum = int.from_bytes(self.BasicInfo[16:20], byteorder='little')
+            self.BEventChannelNum = int.from_bytes(self.BasicInfo[20:24], byteorder='little')
+            self.BlockPnts = int.from_bytes(self.BasicInfo[24:28], byteorder='little')
+            self.BSampleRate = int.from_bytes(self.BasicInfo[28:32], byteorder='little')
+            self.BDataSize = int.from_bytes(self.BasicInfo[32:36], byteorder='little')
+            self.BResolution = struct.unpack('<f', self.BasicInfo[36:40])[0]
+            # (self.Bsize, self.BEegChannelNum, self.BEventChannelNum,
+            #  self.BlockPnts, self.BSampleRate, self.BDataSize,
+            #  self.BResolution) = struct.unpack_from('<iiiiiif', self.BasicInfo, 12)
             self.pattern = '<h' if self.BDataSize == 2 else '<i'
             self.ch_num = self.BEegChannelNum + self.BEventChannelNum
             # self.T = self.BlockPnts / self.BSampleRate / 2

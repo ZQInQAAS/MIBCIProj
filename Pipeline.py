@@ -12,8 +12,8 @@ from VRInterface import VRInterface
 
 class Pipeline(object):
     def __init__(self, main_cfg):
-        # self.ns_reader = NSDataReader()
-        self.ns_reader = NSDataReaderRandom()
+        self.ns_reader = NSDataReader()
+        # self.ns_reader = NSDataReaderRandom()
         self.is_online = main_cfg.is_online
         # self.cue = CueInterface(main_cfg)
         self.cue = VRInterface(main_cfg)
@@ -26,6 +26,7 @@ class Pipeline(object):
         self.cue.subscribe(BCIEvent.gaze_focus, self.stim.get_gaze)
         self.cue.subscribe(BCIEvent.cue_disconnect, self.stim.stop_stim)
         self.stim.subscribe(BCIEvent.save_data, self.save_data)
+        self.stim.subscribe(BCIEvent.save_data, self.ns_reader.stop_data_reader)
         if self.is_online:
             self.processor = Processor(main_cfg)
             self.processor.subscribe(BCIEvent.readns_header, self.ns_reader.get_head_settings)
