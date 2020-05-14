@@ -34,6 +34,7 @@ class PyPublisher(object):
         listener:监听者
         event_name:事件id
         """
+        super(PyPublisher, self).__init__()
         self.subscriptions = {}
 
     def subscribe(self, event_name, func):

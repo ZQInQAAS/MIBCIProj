@@ -71,7 +71,6 @@ class NSDataReader(object):
         sleep(0.1)
         self.socket.close()
 
-
     def get_ns_signal(self, duration=None):
         signal = np.array(self.signal)
         return signal[-duration:, 0:-1] if duration else signal[:, 0:-1]  # remove label column
