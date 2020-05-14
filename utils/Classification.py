@@ -24,6 +24,7 @@ class Classification(object):
         # epoch : T×N  单个epoch T: 采样点数  N: 通道数
         # predict: ndarray(1,) double 分类结果
         # epoch = CARFilter(epoch)
+        epoch = np.delete(epoch, [11, 12], 1)  # 移除f4 cp3
         after_filter_test_x = bandpass_filter(epoch, fs, self.filter_low, self.filter_high)
         after_csp_test_x = csp_spatial_filter(after_filter_test_x, self.csp_proj_matrix)
         predict = self.svm_clf.predict(after_csp_test_x)
