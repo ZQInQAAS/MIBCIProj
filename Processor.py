@@ -73,3 +73,4 @@ class Processor(PyPublisher):
         path = strftime(self.save_path + "//onlineResult_%Y%m%d_%H%M_%S.txt")
         with open(path, 'a') as f:
             f.writelines(self.result_log)
+        print('Online log saved successfully.')

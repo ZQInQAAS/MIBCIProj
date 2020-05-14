@@ -8,7 +8,7 @@ from BCIEnum import StimType, BCIEvent
 
 class VRInterface(Interface):
     def __init__(self, main_cfg):
-        Interface.__init__(self, main_cfg)
+        super(VRInterface, self).__init__(main_cfg)
         self.gesture = main_cfg.subject.exo_type
         self.highpoint, _ = main_cfg.subject.get_exo_position()
         print(self.gesture, self.highpoint)

@@ -3,25 +3,27 @@ import json
 import socket
 import subprocess
 from utils import PyPublisher
-from threading import Thread, Lock
+from threading import Thread, Lock, Event
 from BCIEnum import BCIEvent, StimType
 
 
-class Interface(PyPublisher):
+class Interface(PyPublisher, Thread):
     def __init__(self, main_cfg):
-        PyPublisher.__init__(self)
+        super(Interface, self).__init__()
+        self.cue_running = Event()  # 停止线程的标识
+        self.cue_running.set()
         self.is_online = main_cfg.is_online
         self.class_list = main_cfg.stim_cfg.class_list
         self.gaze_pos = {'left': 'Left', 'right': 'Right', 'rest': 'Center'}
 
+
 class CueInterface(Interface):
     def __init__(self, main_cfg):
-        Interface.__init__(self, main_cfg)
+        super(CueInterface, self).__init__(main_cfg)
         self.state = None
         self.sock = socket.socket()
         self.tcp_lock = Lock()
-        self.tcp_address = "127.0.0.1", 4567
-        self.tcp_recv_thread = Thread(target=self.tcp_recv)
+        self.tcp_address = '127.0.0.1', 4567
         self.cue_path = main_cfg.stim_cfg.cue_path
         self.is_repeat = main_cfg.stim_cfg.is_repeat
         self.move_sound_path = main_cfg.stim_cfg.move_sound_path
@@ -29,11 +31,7 @@ class CueInterface(Interface):
         self.stop_sound_path = main_cfg.stim_cfg.stop_sound_path
         # self.parentDir = os.path.abspath(os.getcwd())
         self.parentDir = os.getcwd()
-
-
-    def start(self):
         self.connect()
-        self.tcp_recv_thread.start()
 
     def connect(self):
         self.sock.bind(self.tcp_address)
@@ -76,8 +74,8 @@ class CueInterface(Interface):
             self.send_end()
             self.close()
 
-    def tcp_recv(self):
-        while True:
+    def run(self):
+        while self.cue_running.isSet():
             try:
                 lengthBytes = bytearray(4)
                 self.conn.recvfrom_into(lengthBytes, 4)
@@ -95,10 +93,11 @@ class CueInterface(Interface):
         self.send_animation_ctrl(is_stop=bool(1-predict))
 
     def disconnect(self):
-        self.publish(BCIEvent.cue_disconnect)
         self.close()
+        self.publish(BCIEvent.cue_disconnect)
 
     def close(self):
+        self.cue_running.clear()
         self.conn.close()
         self.sock.close()
         print('Interface closed.')
