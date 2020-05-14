@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn import svm
 from utils.loadrawnpz import sliding_window
 from utils import csp_train, csp_spatial_filter, bandpass_filter

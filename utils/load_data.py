@@ -7,6 +7,7 @@ def loadnpz(filepath):
     # data_x(samples, channels, trials)
     file_data = np.load(filepath, allow_pickle=True)
     signal = file_data.f.signal
+    signal = np.delete(signal, [11, 12], 1)  # 移除f4 cp3
     events = file_data.f.events
     fs = file_data.f.header_dict[()]['sample_rate']
     cue_dur = file_data.f.stim_pram_dict[()]['display_cue_duration']
