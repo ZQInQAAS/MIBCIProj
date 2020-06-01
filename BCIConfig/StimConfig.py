@@ -1,5 +1,5 @@
 import random
-from BCIEnum import classStimList, StimType
+from BCIConfig import classStimList, StimType
 
 cue_path_set = [r'\cue_material\leftelbow_up_u3d.gif',
                 r'\cue_material\rightelbow_up_u3d.gif',
@@ -19,9 +19,9 @@ class StimConfig(object):
         self.display_cue_duration = 4
         self.is_repeat = False  # False：单向；True：双向重复
         self.set_cue_path()
-        self.move_sound_path = r'\cue_material\move_sound.wav'
-        self.relax_sound_path = r'\cue_material\relax_sound.wav'
-        self.stop_sound_path = r'\cue_material\stop_sound.wav'
+        self.move_sound_path = r'../cue_material/move_sound.wav'
+        self.relax_sound_path = r'../cue_material/relax_sound.wav'
+        self.stop_sound_path = r'../cue_material/stop_sound.wav'
 
     def set_class(self, class_list):
         index = [classStimList.index(i) for i in classStimList if i in class_list]

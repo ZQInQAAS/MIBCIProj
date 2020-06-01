@@ -2,7 +2,7 @@
 import time
 import serial
 import threading
-from BCIEnum import StimType
+from BCIConfig import StimType
 
 
 # 香港理工机械手控制
@@ -25,7 +25,7 @@ class Exoskeleton(object):
 
     def set_exo_param(self):
         self.exo_type = self.subject.exo_type
-        self.affectedSide = self.subject.get_affected_side()
+        self.affectedSide = self.subject.affected_side
         highest_point, lowest_point = self.subject.get_exo_position()
         velocity = self.subject.get_exo_velocity()
         self.set_param(highest_point, lowest_point, velocity)
@@ -50,6 +50,8 @@ class Exoskeleton(object):
     def handle_stim(self, stim):
         if not self.is_exo_feedback:
             return
+        if stim == StimType.ExperimentStart:
+            self.connect(self.subject.get_com_num())
         if stim == StimType.MoveUp:
             self.first_stage = True if self.is_online else self.stretch_arm()
             return
@@ -69,7 +71,6 @@ class Exoskeleton(object):
             self.back_arm() if self.first_stage else self.stretch_arm()
         else:
             self.exoskeleton_stop()
-
 
     # 连接串口，输入串口号和波特率
     def link_to_exoskeleton(self):
@@ -183,10 +184,11 @@ class Exoskeleton(object):
     def disconnect_com(self):
         self.reset_arm()
         self.com.close()
+        self.Connected = False
         print("Exoskeleton close successfully")
 
     def com_write(self, message):
         self.com_write_lock.acquire()
         self.com.write(message.encode())
-        self.com_write_lock.acquire()
+        self.com_write_lock.release()
 

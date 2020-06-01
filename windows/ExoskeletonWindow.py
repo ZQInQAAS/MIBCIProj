@@ -29,6 +29,7 @@ class ExoskeletonWindow(wx.Dialog):
         exo_type_list = list(exo_type_dist.keys())
         self.exo_type_Ctrl = wx.Choice(panel, name="exo type", choices=exo_type_list, size=(90, 27))
         self.exo_type_Ctrl.SetSelection(0)
+        self.exo_type_Ctrl.Bind(wx.EVT_CHOICE, self.on_exo_type)
         grid_sizer1.Add(self.exo_type_Ctrl, 0, wx.ALL, 5)
 
         grid_sizer2 = wx.FlexGridSizer(cols=4, vgap=10, hgap=1)
@@ -65,7 +66,7 @@ class ExoskeletonWindow(wx.Dialog):
 
     def on_submit(self, event):
         self.get_value()
-        if self.exo.Connected is True:
+        if self.exo.Connected:
             self.exo.disconnect_com()
         self.Close()  # 关闭窗体
 
@@ -76,13 +77,17 @@ class ExoskeletonWindow(wx.Dialog):
         self.exo.preview_step()
         self.exo.disconnect_com()
 
+    def on_exo_type(self, event):
+        self.subject.exo_type = exo_type_dist[self.exo_type_Ctrl.GetStringSelection()]
+        print(self.subject.exo_type)
+        self.init_value()
+
     def on_stop(self, event):
         # 结束外骨骼控制，关蓝牙
         if self.exo and self.exo.Connected:
                 self.exo.disconnect_com()
 
     def get_value(self):
-        self.subject.exo_type = exo_type_dist[self.exo_type_Ctrl.GetStringSelection()]
         self.exo.is_exo_feedback = self.is_exo_fb_check.GetValue()  # 是否外骨骼反馈
         self.subject.set_exo_position(self.highestPoint.GetValue(), self.lowestPoint.GetValue())
         self.subject.set_exo_velocity(self.velocity.GetValue())

@@ -3,8 +3,8 @@ import socket
 import struct
 import threading
 import numpy as np
-from utils import RepeatingTimer
 from time import sleep, time
+from utils import RepeatingTimer
 
 
 class NSDataReader(object):
@@ -41,9 +41,6 @@ class NSDataReader(object):
             self.BSampleRate = int.from_bytes(self.BasicInfo[28:32], byteorder='little')
             self.BDataSize = int.from_bytes(self.BasicInfo[32:36], byteorder='little')
             self.BResolution = struct.unpack('<f', self.BasicInfo[36:40])[0]
-            # (self.Bsize, self.BEegChannelNum, self.BEventChannelNum,
-            #  self.BlockPnts, self.BSampleRate, self.BDataSize,
-            #  self.BResolution) = struct.unpack_from('<iiiiiif', self.BasicInfo, 12)
             self.pattern = '<h' if self.BDataSize == 2 else '<i'
             self.ch_num = self.BEegChannelNum + self.BEventChannelNum
             # self.T = self.BlockPnts / self.BSampleRate / 2
@@ -70,6 +67,7 @@ class NSDataReader(object):
         self._send_command_to_ns(1, 2)
         sleep(0.1)
         self.socket.close()
+        print('Close scan4.5 server successfully.')
 
     def get_ns_signal(self, duration=None):
         signal = np.array(self.signal)

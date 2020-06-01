@@ -2,9 +2,7 @@
 import wx
 import os
 import pickle
-import datetime
-from SubjectInfoConfig import SubjectInfoConfig
-from StimConfig import StimConfig
+from BCIConfig import StimConfig, SubjectInfoConfig
 from windows.SettingWindow import SettingWindow
 from windows.TrainModelWindow import TrainModelWindow
 from windows.ExoskeletonWindow import ExoskeletonWindow

@@ -1,2 +1,2 @@
-visual|image:file://D:/code/MIBCIProj/cue_material/leftelbow_up_u3d.gif
-visual|image:file://D:/code/MIBCIProj/cue_material/rightelbow_up_u3d.gif
+visual|image:file://D:/Myfiles/MIBCIProj/cue_material/leftelbow_up_u3d.gif
+visual|image:file://D:/Myfiles/MIBCIProj/cue_material/rightelbow_up_u3d.gif

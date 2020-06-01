@@ -4,7 +4,7 @@ import socket
 import subprocess
 from utils import PyPublisher
 from threading import Thread, Lock, Event
-from BCIEnum import BCIEvent, StimType
+from BCIConfig import BCIEvent, StimType
 
 
 class Interface(PyPublisher, Thread):

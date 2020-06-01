@@ -1,7 +1,7 @@
 import pickle
 from utils import PyPublisher
-from time import time, strftime
-from BCIEnum import BCIEvent, StimType
+from time import strftime
+from BCIConfig import BCIEvent, StimType
 from NSDataReader import RepeatingTimer
 
 
@@ -57,10 +57,10 @@ class Processor(PyPublisher):
 
     def get_result_log(self):
         epoch_num = len(self.right_num_one_run)
-        one_run_acc = sum(self.right_num_one_run) / epoch_num
+        one_run_acc = round(sum(self.right_num_one_run) / epoch_num, 2)
         self.right_num_all.extend(self.right_num_one_run)
         self.right_num_one_run = []
-        all_acc = one_run_acc if len(self.right_num_all) == 0 else sum(self.right_num_all) / len(self.right_num_all)
+        all_acc = one_run_acc if len(self.right_num_all) == 0 else round(sum(self.right_num_all) / len(self.right_num_all), 2)
         self.trial_num = self.trial_num + 1
         # print('————————————')
         one_run_log = '\ntrial ' + str(self.trial_num) + ':  ' + 'cue:' + str(self.label) + \

@@ -1,5 +1,5 @@
 import wx
-from BCIEnum import classStimList
+from BCIConfig import classStimList
 
 
 class SettingWindow(wx.Dialog):

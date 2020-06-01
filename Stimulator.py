@@ -1,6 +1,6 @@
 from threading import Thread, Event
-from time import sleep, time
-from BCIEnum import BCIEvent, StimType
+from time import time
+from BCIConfig import BCIEvent, StimType
 from utils import PyPublisher
 
 

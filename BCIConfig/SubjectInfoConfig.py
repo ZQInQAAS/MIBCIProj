@@ -3,9 +3,9 @@ import datetime
 
 
 com_num_set = {'elbow': {'left': 53, 'right': 53},
-               'wrist': {'left': 7, 'right': 7},
-               'forearm': {'left': 7, 'right': 7},
-               'hand': {'left': 7, 'right': 7}}
+               'wrist': {'left': 1, 'right': 1},
+               'forearm': {'left': 1, 'right': 1},
+               'hand': {'left': 1, 'right': 1}}
 # 最高/左  最低/右
 exo_position = {'elbow': {'left': {'highest_point': 1250, 'lowest_point': 250},
                           'right': {'highest_point': 1400, 'lowest_point': 2200}},
@@ -50,7 +50,6 @@ class SubjectInfoConfig(object):
         if os.path.exists(self.dataset_dir):
             self.make_dir(self.subject_dir)
             # self.set_date_dir()
-
 
     def set_date_dir(self):
         date = datetime.datetime.now().strftime('%Y%m%d')

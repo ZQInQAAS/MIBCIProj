@@ -1,9 +1,9 @@
-import json
 import zmq
-import subprocess
+import json
 import datetime
+import subprocess
+from BCIConfig import StimType
 from CueInterface import Interface
-from BCIEnum import StimType, BCIEvent
 
 
 class VRInterface(Interface):

@@ -29,4 +29,3 @@ def CARFilter(data_x):
         for i in range(channel_num):
             after_car_data_x[:, i] = data_x[:, i] - channel_mean
     return after_car_data_x
-

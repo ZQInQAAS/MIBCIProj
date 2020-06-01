@@ -1,22 +1,20 @@
 import numpy as np
 import pandas as pd
 from time import strftime, sleep
-from BCIEnum import BCIEvent
-from utils import PyEventBus
+from BCIConfig import BCIEvent
 from Processor import Processor
 from Stimulator import Stimulator
-from NSDataReader import NSDataReader, NSDataReaderRandom
+from NSDataReader import NSDataReaderRandom
 from CueInterface import CueInterface
-from VRInterface import VRInterface
 
 
 class Pipeline(object):
     def __init__(self, main_cfg):
-        self.ns_reader = NSDataReader()
-        # self.ns_reader = NSDataReaderRandom()
+        # self.ns_reader = NSDataReader()
+        self.ns_reader = NSDataReaderRandom()
         self.is_online = main_cfg.is_online
-        # self.cue = CueInterface(main_cfg)
-        self.cue = VRInterface(main_cfg)
+        self.cue = CueInterface(main_cfg)
+        # self.cue = VRInterface(main_cfg)
         self.stim = Stimulator(main_cfg.stim_cfg)
         self.save_data_path = main_cfg.subject.get_date_dir()
         self.filename = 'online' if main_cfg.is_online else 'acquire'

@@ -2,7 +2,6 @@ import wx
 import os
 import pickle
 import numpy as np
-# from utils.loadrawnpz import loadnpz
 from utils.load_data import loadnpz
 from utils import Classification
 
