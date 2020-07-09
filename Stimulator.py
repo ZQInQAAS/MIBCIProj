@@ -1,7 +1,7 @@
 from threading import Thread, Event
 from time import time
 from BCIConfig import BCIEvent, StimType
-from utils import PyPublisher
+from process_tools import PyPublisher
 
 
 class Stimulator(PyPublisher, Thread):

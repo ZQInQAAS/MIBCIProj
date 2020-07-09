@@ -2,7 +2,7 @@ import os
 import json
 import socket
 import subprocess
-from utils import PyPublisher
+from process_tools import PyPublisher
 from threading import Thread, Lock, Event
 from BCIConfig import BCIEvent, StimType
 

@@ -4,7 +4,7 @@ import struct
 import threading
 import numpy as np
 from time import sleep, time
-from utils import RepeatingTimer
+from process_tools import RepeatingTimer
 
 
 class NSDataReader(object):

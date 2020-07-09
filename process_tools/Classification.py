@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn import svm
-from utils import CSP, bandpass_filter, sliding_window
+from process_tools import CSP, bandpass_filter, sliding_window
 
 
 class Classification(object):

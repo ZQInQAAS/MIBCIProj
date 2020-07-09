@@ -1,5 +1,5 @@
 import pickle
-from utils import PyPublisher
+from process_tools import PyPublisher
 from time import strftime
 from BCIConfig import BCIEvent, StimType
 from NSDataReader import RepeatingTimer

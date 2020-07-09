@@ -2,8 +2,8 @@ import wx
 import os
 import pickle
 import numpy as np
-from utils.load_data import loadnpz
-from utils import Classification
+from process_tools.load_data import loadnpz
+from process_tools import Classification
 
 
 class TrainModelWindow(wx.Dialog):
