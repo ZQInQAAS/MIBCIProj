@@ -14,7 +14,6 @@ class Interface(PyPublisher, Thread):
         self.cue_running.set()
         self.is_online = main_cfg.is_online
         self.class_list = main_cfg.stim_cfg.class_list
-        self.gaze_pos = {'left': 'Left', 'right': 'Right', 'rest': 'Center'}
 
 
 class CueInterface(Interface):
@@ -31,6 +30,7 @@ class CueInterface(Interface):
         self.stop_sound_path = main_cfg.stim_cfg.stop_sound_path
         # self.parentDir = os.path.abspath(os.getcwd())
         self.parentDir = os.getcwd()
+        self.gaze_pos = {'left': 'Left', 'right': 'Right', 'rest': 'Center'}
         self.connect()
 
     def connect(self):

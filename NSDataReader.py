@@ -70,14 +70,16 @@ class NSDataReader(object):
         print('Close scan4.5 server successfully.')
 
     def get_ns_signal(self, duration=None):
+        # signal: (sample, channal)
         signal = np.array(self.signal)
         return signal[-duration:, 0:-1] if duration else signal[:, 0:-1]  # remove label column
 
     def get_head_settings(self):
-        channel_list = ['FP1', 'FPz', 'FP2', 'AF3', 'AF4', 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6', 'FC5', 'FC3',
+        ch_names = ['FP1', 'FPz', 'FP2', 'AF3', 'AF4', 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6', 'FC5', 'FC3',
                         'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3',
                         'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'M1', 'M2']  # 35 ch
-        return {'sample_rate': self.BSampleRate, 'channel_list': channel_list}
+        ch_types = ['eeg'] * 26 + ['eeg'] * 15
+        return {'sample_rate': self.BSampleRate, 'ch_names': ch_names, 'ch_types': ch_types}
 
     def _send_command_to_ns(self, ctrcode, reqnum):
         a = 'CTRL'
@@ -90,17 +92,23 @@ class NSDataReader(object):
 
 class NSDataReaderRandom(object):
     def __init__(self):
-        self.ch_num = 8
+        self.ch_num = 26
         self.signal = []
         self.data_time = []
         self.fs = 500  # 数据生成速度无法达到500采样
         self.repeat_timer = RepeatingTimer(0.1, self._read_data)
+        # path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean' \
+        #        r'\S4\S4_20200721\NSsignal_2020_07_21_16_05_04.npz'
+        # npz_data_dict = dict(np.load(path))
+        # data = npz_data_dict['signal']  # (samples, channels)
+        # self.data = data[:, 0:27]
+        # self.i = 0
 
     def start(self):
         self.repeat_timer.start()
 
     def _read_data(self):
-        data = (10 * np.random.randn(400)).tolist()
+        data = (10 * np.random.randn(520)).tolist()
         self.signal += [data[i: i + self.ch_num] for i in range(0, len(data), self.ch_num)]
         self.data_time.append(time())
 
@@ -108,8 +116,13 @@ class NSDataReaderRandom(object):
         print('Close neuroscan random server.')
 
     def get_ns_signal(self, duration=None):
+        # self.signal = self.data[self.i*500:self.i*500+1000, :]
+        # self.i = self.i+1
         signal = np.array(self.signal)
-        return signal[-duration:, 0:-1] if duration else signal[:, 0:-1]  # remove label column
+        return signal[-duration:, :] if duration else signal[:, :]  # remove label column
 
     def get_head_settings(self):
-        return {'sample_rate': self.fs, 'channel_list': ['FP1', 'FPz', 'FP2', 'AF3', 'AF4', 'F5', 'F3', 'F1']}
+        ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
+                    'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6']
+        ch_types = ['eeg'] * self.ch_num
+        return {'sample_rate': self.fs, 'ch_names': ch_names, 'ch_types': ch_types}

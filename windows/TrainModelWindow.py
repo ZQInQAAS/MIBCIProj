@@ -4,29 +4,29 @@ import pickle
 import numpy as np
 from process_tools.load_data import loadnpz
 from process_tools import Classification
-
+import pandas as pd
+from MIdataset import MIdataset
+from process_tools import iterative_CSP
 
 class TrainModelWindow(wx.Dialog):
     def __init__(self, parent, title):
         super(TrainModelWindow, self).__init__(parent, title=title)
         self.save_model_path = parent.subject.get_model_path()
-        self.train_file_num = parent.trainFileNumCtrl.GetValue()
+        # self.train_file_num = parent.trainFileNumCtrl.GetValue()
         self.init_ui()
 
     def init_ui(self):
         dataWildcard = "npz Data File (.npz)" + "|*.npz"
         panel = wx.Panel(self)
         grid_sizer1 = wx.FlexGridSizer(cols=2, vgap=1, hgap=1)
-        self.train_path_ctrl = list(range(self.train_file_num))
-        for i in range(self.train_file_num):
-            label_text = '选择数据' + str(i+1) + '：'
-            label = wx.StaticText(panel, label=label_text)
-            grid_sizer1.Add(label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-            self.train_path_ctrl[i] = wx.FilePickerCtrl(panel, wildcard=dataWildcard, size=(350, 27))
-            self.train_path_ctrl[i].SetInitialDirectory(os.path.dirname(self.save_model_path))
-            self.train_path_ctrl[i].GetPickerCtrl().SetLabel('浏览')
-            grid_sizer1.Add(self.train_path_ctrl[i], 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.SetSize(470, 60 * (self.train_file_num + 1) + 30)
+        label_text = '选择数据' + '：'
+        label = wx.StaticText(panel, label=label_text)
+        grid_sizer1.Add(label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.train_path_ctrl = wx.FilePickerCtrl(panel, wildcard=dataWildcard, size=(350, 27))
+        self.train_path_ctrl.SetInitialDirectory(os.path.dirname(self.save_model_path))
+        self.train_path_ctrl.GetPickerCtrl().SetLabel('浏览')
+        grid_sizer1.Add(self.train_path_ctrl, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.SetSize(470, 60 * 2 + 30)
         self.Centre()
         grid_sizer2 = wx.FlexGridSizer(cols=2, vgap=1, hgap=1)
         self.train_model_btn = wx.Button(panel, label='模型训练开始', size=wx.Size(100, 27))
@@ -45,27 +45,19 @@ class TrainModelWindow(wx.Dialog):
     def on_close(self, event):
         self.Close()  # 关闭窗体
 
-    def gather_data(self):
-        data_num = len(self.train_path_ctrl)
-        train_data_path = list(range(data_num))
-        for i in range(data_num):
-            train_data_path[i] = self.train_path_ctrl[i].GetPath()
-            if train_data_path[i] == '':
-                train_data_path.remove(train_data_path[i])
-        train_data_path = list(set(train_data_path))
-        data_x_gather, data_y_gather, fs = loadnpz(train_data_path[0])
-        for i in range(1, len(train_data_path)):
-            data_x, data_y, _ = loadnpz(train_data_path[i])  # x:(sample, channal, trial)  y:(trial,)
-            data_x_gather = np.concatenate((data_x_gather, data_x), axis=2)
-            data_y_gather = np.concatenate((data_y_gather, data_y), axis=0)
-        return data_x_gather, data_y_gather, fs
-
     def on_train_model(self, event):
-        data_x, data_y, fs = self.gather_data()
-        clf = Classification()
-        clf.train_model(data_x, data_y, fs)
-        with open(self.save_model_path, 'wb') as f:
-            f.write(pickle.dumps(clf))
+        data = MIdataset(self.train_path_ctrl.GetPath())
+        data.bandpass_filter(1, 100)  # band pass
+        data.set_reference()  # CAR
+        data.removeEOGbyICA()  # ICA
+        data.bandpass_filter(8, 30)
+        label = ['left', 'right']
+        select_ch = ['F3', 'F1', 'F2', 'F4', 'FC5', 'FC3', 'C5', 'C3', 'C1','CP4', 'CP6', 'F5', 'AF3', 'AF4',
+                     'P5', 'P3', 'P1', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CP2']  # M1附近区域
+        data_array, label = data.get_epoch_data(select_label=label, select_ch=select_ch)
+        selected_ch_names = iterative_CSP(data_array, label, select_ch)  # csp select
+        df = pd.DataFrame(data=selected_ch_names)
+        df.to_csv(self.save_model_path, header=False, index=False)  # save selected channels
         self.statusLabel.SetLabel('模型训练完成。')
 
 

@@ -29,6 +29,9 @@ class RepeatingTimer(threading.Timer):
             self.function(*self.args, **self.kwargs)
             self.finished.wait(self.interval)
 
+    def stop(self):
+        self.finished.set()
+
 
 # LazyProperty 虚拟代理 惰性地（首次使用时）创建对象 修饰器
 class LazyProperty:

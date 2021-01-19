@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn import svm
-from process_tools import CSP, bandpass_filter, sliding_window
+from process_tools import CSP, bandpass_filter
 
 
 class Classification(object):
@@ -14,7 +14,7 @@ class Classification(object):
         # train_x: (sample, channal, trial)
         train_x = np.delete(train_x, [11, 12], 1)  # 移除f4 cp3
         x_train_filt = bandpass_filter(train_x, fs, self.filter_low, self.filter_high)
-        x_train_filt, train_y = sliding_window(x_train_filt, train_y)
+        # x_train_filt, train_y = sliding_window(x_train_filt, train_y)
         tmp_train = self.csp.fit_transform(x_train_filt, train_y)
         self.svm_clf.fit(tmp_train, train_y)
 
