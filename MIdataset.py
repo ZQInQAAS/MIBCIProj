@@ -9,6 +9,7 @@ ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC
 ch_types = ['eeg'] * 26 + ['eog'] * 2 + ['eeg'] * 2 + ['eeg'] * 15
 # ch_types = ['eeg'] * 26 + ['eeg'] * 15
 
+
 class MIdataset(object):
     def __init__(self, path):
         self.path = path
@@ -159,6 +160,7 @@ class MIdataset(object):
 
 if __name__ == '__main__':
     path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean\S4\S4_20200721\NSsignal_2020_07_21_16_05_04.npz'
+    path = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210119\acq_20210119_2046_51.npz'
     d = MIdataset(path)
     data, label = d.get_epoch_data(select_label=['left', 'right'], select_ch=['F3', 'F1', 'F2', 'F4', 'FC3', 'FC5'])
     # d.set_reference()

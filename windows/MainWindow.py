@@ -39,11 +39,11 @@ class MainWindow(wx.Frame):
         grid_sizer1.Add(self.newSubjectBtn, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         grid_sizer2 = wx.FlexGridSizer(cols=1, vgap=5, hgap=1)
-        self.acqBtn = wx.Button(panel, label="① 校准(无反馈)", name="acq", size=(110, 27))
+        self.acqBtn = wx.Button(panel, label="① 校准(无反馈)", name="Acq", size=(110, 27))
         grid_sizer2.Add(self.acqBtn, 0, wx.ALL, 5)
         self.TrainModelBtn = wx.Button(panel, label="② 校准模型", size=(110, 27))
         grid_sizer2.Add(self.TrainModelBtn, 0, wx.ALL, 5)
-        self.onlineBtn = wx.Button(panel, label="③ 校准(有反馈)", name="online", size=(110, 27))
+        self.onlineBtn = wx.Button(panel, label="③ 校准(有反馈)", name="Online", size=(110, 27))
         grid_sizer2.Add(self.onlineBtn, 0, wx.ALL, 5)
         self.alpha_NFBtn = wx.Button(panel, label="④ alpha 有反馈训练", name="RestNF", size=(150, 27))
         grid_sizer2.Add(self.alpha_NFBtn, 0, wx.ALL, 5)
@@ -91,6 +91,7 @@ class MainWindow(wx.Frame):
     def on_load_param(self, event):
         subject_name = self.subjectNameCtrl.GetStringSelection()
         self.subject.set_subject(subject_name)
+        self.subject.set_date_dir()
 
     def on_graz_start(self, event):
         if not self.subject.subject_name:
@@ -101,7 +102,7 @@ class MainWindow(wx.Frame):
         # if self.session_type == 'online' and not os.path.exists(self.subject.get_model_path()):
         #     self.statusBar.SetStatusText(r'未找到训练模型')
         #     return
-        self.subject.set_date_dir()
+        # self.subject.set_date_dir()
 
         msg_dialog = wx.MessageDialog(self, "是否开始【" + task_label + "】任务?", task_label+"任务开始", wx.OK | wx.CANCEL | wx.CENTRE)
         if msg_dialog.ShowModal() == wx.ID_OK:

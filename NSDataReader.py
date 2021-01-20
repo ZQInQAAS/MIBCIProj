@@ -10,8 +10,8 @@ from process_tools import RepeatingTimer
 class NSDataReader(object):
     def __init__(self):
         # self.address = '192.168.11.123', 9889  # 有线
-        self.address = '10.168.2.164', 9889  # QAAS_Bridge wifi
-        # self.address = '192.168.43.166', 9889
+        # self.address = '10.168.2.164', 9889  # QAAS_Bridge wifi
+        self.address = '192.168.43.166', 9889
         self.socket = socket.socket()
         self.socket.settimeout(15)
         self.repeat_timer = RepeatingTimer(0.02, self._read_data)  # 循环时间应<0.02
@@ -74,12 +74,8 @@ class NSDataReader(object):
         signal = np.array(self.signal)
         return signal[-duration:, 0:-1] if duration else signal[:, 0:-1]  # remove label column
 
-    def get_head_settings(self):
-        ch_names = ['FP1', 'FPz', 'FP2', 'AF3', 'AF4', 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6', 'FC5', 'FC3',
-                        'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3',
-                        'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'M1', 'M2']  # 35 ch
-        ch_types = ['eeg'] * 26 + ['eeg'] * 15
-        return {'sample_rate': self.BSampleRate, 'ch_names': ch_names, 'ch_types': ch_types}
+    def get_sample_rate(self):
+        return self.BSampleRate
 
     def _send_command_to_ns(self, ctrcode, reqnum):
         a = 'CTRL'

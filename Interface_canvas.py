@@ -1,11 +1,12 @@
 import wx
-import time
-import subprocess
-from pubsub import pub
+# import time
+# import subprocess
+# from pubsub import pub
 from process_tools import PyPublisher
-from threading import Thread, Event
+# from threading import Thread, Event
 from BCIConfig import BCIEvent, StimType
 from wx.lib.floatcanvas import FloatCanvas
+
 
 class Interface(PyPublisher, wx.Frame):
     def __init__(self, main_cfg):
@@ -91,7 +92,7 @@ class Interface(PyPublisher, wx.Frame):
             self.rect0.SetLineColor(color)
             self.rect1.SetShape((bar_bias, 0), (bar_width, score[1] * 150))
             self.rect1.SetFillColor(color)
-            self.rect0.SetLineColor(color)
+            self.rect1.SetLineColor(color)
             self.Canvas.RemoveObject(self.rect0)
             self.Canvas.AddObject(self.rect0)
             self.Canvas.RemoveObject(self.rect1)
@@ -127,16 +128,7 @@ class Interface(PyPublisher, wx.Frame):
 
 
 if __name__ == '__main__':
-    # app = wx.App()
-    # win = Interface('1')
-    # win.Show()
-    # app.MainLoop()
-    num_each_line = 6
-
-    for face_num in range(0, 40):
-        num = face_num // 2
-        snum = num // (num_each_line )+1   # 颜色序号
-        face_n = num % num_each_line + 1  # 第N个
-        snum = snum if snum <= 4 else (snum - 4)
-        isleft = -1 if (face_num % 2) == 1 else 1  # 奇数是左，偶数是右
-        print(face_num, 'path', str(snum), face_n)
+    app = wx.App()
+    win = Interface('1')
+    win.Show()
+    app.MainLoop()

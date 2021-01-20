@@ -1,12 +1,12 @@
 import mne
 import numpy as np
 from process_tools import LazyProperty
+from BCIConfig import ch_names, ch_types, event_id
 
 
 class MIdataset(object):
-    def __init__(self, path, config_path):
+    def __init__(self, path):
         self.read_newdata(path)
-        self.read_config(config_path)
         self.epoch_data = None
         self._info = None
         self._raw_mne = None
@@ -14,22 +14,18 @@ class MIdataset(object):
         self.mne_scallings = dict(eeg=20, eog=500)
 
     def read_newdata(self, path):
-        npz_data_dict = dict(np.load(path))
+        npz_data_dict = dict(np.load(path, allow_pickle=True))
         self.data = npz_data_dict['signal']
         self.events = npz_data_dict['events']
         # self.stim_log = npz_data_dict['stim_log']
-
-    def read_config(self, config_path):
-        config_data_dict = dict(np.load(config_path))
-        self.event_id = config_data_dict['event_id_dict']
-        self.fs = config_data_dict['nsheader_dict']['sample_rate']
-        self.ch_names = config_data_dict['nsheader_dict']['ch_names']
-        self.ch_types = config_data_dict['nsheader_dict']['ch_types']
-        self.stim_pram = config_data_dict['stim_pram_dict']
+        self.ch_names =ch_names
+        self.ch_types = ch_types
+        self.fs = 500
+        self.event_id = event_id
 
     @LazyProperty
     def info(self):
-        montage = 'standard_1005'
+        montage = 'standard_1020'
         self._info = mne.create_info(self.ch_names, self.fs, self.ch_types)
         self._info.set_montage(montage)
         return self._info
@@ -45,8 +41,8 @@ class MIdataset(object):
     def epochs_mne(self):
         # epochs: (n_epochs, n_chans, n_times)
         # reject_criteria = dict(eeg=150e-6, eog=250e-6)  # eeg150 µV  eog250 µV Exclude the signal with large amplitude
-        self._epochs_mne = mne.Epochs(self.raw_mne, self.events, self.event_id, tmin=-4, tmax=5, baseline=None,
-                                      preload=True)
+        self._epochs_mne = mne.Epochs(self.raw_mne, self.events, self.event_id,
+                                      tmin=-4, tmax=5, baseline=None, preload=True)
         return self._epochs_mne
 
     def get_raw_data(self):
@@ -56,18 +52,17 @@ class MIdataset(object):
         else:
             return self.data[:, :-2]
 
-    def get_epoch_data(self, tmin=0, tmax=5, select_label=None):
-        # return: (sample, channel, trial) label:1-left 2-right 3-foot 4-rest
-        label = self.epochs_mne.events[:, -1]
+    def get_epoch_data(self, tmin=0, tmax=5, select_label=None, select_ch=None):
+        # return: (sample, channel, trial) label:left right foot rest
         epochs = self.epochs_mne.crop(tmin=tmin, tmax=tmax)
-        data = epochs.get_data(picks='eeg')  # (n_epochs, n_channels, n_times)
+        if select_ch:
+            epochs = epochs.pick_channels(select_ch)
+            epochs = epochs.reorder_channels(select_ch)
+        epochs.pick_types(eeg=True)
+        epochs = epochs[select_label]
+        label = epochs.events[:, -1]
+        data = epochs.get_data()  # return (n_epochs, n_channels, n_times)
         data = data.swapaxes(0, 2)
-        data = data[:, :26, :]  # 取前26EEG通道
-        # data = np.delete(data, [28, 29], 1)  # 45通道移除M1 M2
-        if select_label:
-            idx = [i for i in range(len(label)) if label[i] in select_label]
-            label = label[idx]
-            data = data[:, :, idx]
         return data, label
 
     def plot_raw_psd(self, fmin=1, fmax=40):
@@ -115,6 +110,8 @@ class MIdataset(object):
 if __name__ == '__main__':
     path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean\S4\S4_20200721' \
            r'\NSsignal_2020_07_21_16_05_04.npz'
+    path = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210119\acq_20210119_2046_51.npz'
+    # config_p =r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\config.npz'
     d = MIdataset(path)
     # d.set_reference()
     # d.plot_raw_psd()

@@ -55,8 +55,9 @@ class SubjectInfoConfig(object):
         date = datetime.datetime.now().strftime('%Y%m%d')
         if os.path.exists(self.subject_dir):
             self.date_dir = self.subject_dir + '/' + self.subject_name + '_' + date
-            self.make_dir(self.date_dir)
-            self.make_dir(self.date_dir + '/log')
+            if not os.path.exists(self.date_dir):
+                self.make_dir(self.date_dir)
+                self.make_dir(self.date_dir + '/log')
 
     def get_date_dir(self):
         return self.date_dir
@@ -65,11 +66,6 @@ class SubjectInfoConfig(object):
         return self.dataset_dir
 
     def get_model_path(self):
-        if not os.path.exists(self.date_dir):
-            date = datetime.datetime.now().strftime('%Y%m%d')
-            self.date_dir = self.subject_dir + '/' + self.subject_name + '_' + date
-            self.make_dir(self.date_dir)
-            self.make_dir(self.date_dir + '/log')
         return self.date_dir + '/' + 'selected_channel.csv'
 
     def get_param_path(self, subject_name=None):

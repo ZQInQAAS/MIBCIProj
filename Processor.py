@@ -8,10 +8,11 @@ from time import strftime
 from scipy.integrate import simps
 from process_tools import PyPublisher
 from NSDataReader import RepeatingTimer
-from BCIConfig import BCIEvent, StimType
+from BCIConfig import BCIEvent, StimType, ch_types, ch_names
 
 rest_ch = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
            'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4']
+
 
 class Processor(PyPublisher):
     def __init__(self, main_cfg):
@@ -46,12 +47,11 @@ class Processor(PyPublisher):
 
     def start(self):
         selected_ch_pd = pd.read_csv(self.model_path, header=None)
-        self.left_ch = eval(selected_ch_pd.iloc[0].values[0])
-        self.right_ch = eval(selected_ch_pd.iloc[1].values[0])
-        ns_header = self.publish(BCIEvent.readns_header)
-        self.fs = ns_header['sample_rate']
+        self.left_ch = list(selected_ch_pd.iloc[:, 0].values)  #eval(selected_ch_pd.iloc[0].values[0])
+        self.right_ch = list(selected_ch_pd.iloc[:, 1].values)  #eval(selected_ch_pd.iloc[1].values[0])
+        self.fs = self.publish(BCIEvent.readns_header)
         self.online_timer.start()
-        self.info = mne.create_info(ns_header['ch_names'], self.fs, ns_header['ch_types'])
+        self.info = mne.create_info(ch_names, self.fs, ch_types)
         self.info.set_montage('standard_1005')
 
     def handle_stim(self, stim):

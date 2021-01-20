@@ -1,6 +1,6 @@
 import numpy as np
 from process_tools import CSP
-from MIdataset import MIdataset
+from MIdataset_new import MIdataset
 
 
 def iterative_CSP(data_x, label, ch_names):
@@ -84,21 +84,19 @@ def pipeline():
 if __name__ == '__main__':
     import os
     import pandas as pd
-    # dataset_path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean'
-    # data_path = r'\S4\S4_20200721\NSsignal_2020_07_21_16_15_11.npz'
-    # data = MIdataset(dataset_path + data_path)
+    # dataset_path = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210120\Online_20210120_1341_07.npz'
+    # data = MIdataset(dataset_path)
     # data.bandpass_filter(1, 100)  # band pass
-    # data.set_reference()  # CAR
-    # data.removeEOGbyICA()  # ICA
+    # # data.set_reference()  # CAR
+    # # data.removeEOGbyICA()  # ICA
     # data.bandpass_filter(8, 30)
-    # select_ch = ['F5', 'F3', 'F1', 'F2', 'F4', 'F6', 'FC5', 'FC3', 'FC1', 'FC2', 'FC4', 'FC6',
-    #              'C5', 'C3', 'C1', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CP2', 'CP4', 'CP6',
-    #              'P5', 'P3', 'P1', 'P2', 'P4', 'P6']
-    # data_x, label = data.get_epoch_data(select_label=['left', 'right'], select_ch=select_ch)
+    # select_ch = ['F3', 'F1', 'F2', 'F4', 'FC5', 'FC3', 'C5', 'C3', 'C1','CP4', 'CP6', 'F5',
+    #              'P5', 'P3', 'P1', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CP2']
+    # data_x, label = data.get_epoch_data(select_label=['Left', 'Right'], select_ch=select_ch)
     # ch = iterative_CSP(data_x, label, ch_names=select_ch)
     # df = pd.DataFrame(data=ch)
-    # df.to_csv(r'\testcsv.csv', header=False, index=False)
-    df = pd.read_csv('D:\Myfiles\MIBCI_NF\data_set\S4\S4_20210114\selected_channel.csv', header=None)
-    left = eval(df.iloc[0].values[0])
-    print(left)
-    # print(pd)
+    # df.to_csv(r'testcsv.csv', header=False, index=False)
+    df = pd.read_csv(r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210120\selected_channel.csv', header=None)
+    left = list(df.iloc[:, 0].values)
+    # print(left)
+    print(pd)
