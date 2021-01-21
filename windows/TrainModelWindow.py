@@ -7,6 +7,7 @@ from process_tools import Classification
 import pandas as pd
 from MIdataset_new import MIdataset
 from process_tools import iterative_CSP
+from BCIConfig import pick_motor_ch
 
 class TrainModelWindow(wx.Dialog):
     def __init__(self, parent, title):
@@ -52,8 +53,7 @@ class TrainModelWindow(wx.Dialog):
         # data.removeEOGbyICA()  # ICA
         data.bandpass_filter(8, 30)
         label = ['Left', 'Right']
-        select_ch = ['F3', 'F1', 'F2', 'F4', 'FC5', 'FC3', 'C5', 'C3', 'C1','CP4', 'CP6', 'F5',
-                     'P5', 'P3', 'P1', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CP2']  # M1附近区域
+        select_ch = pick_motor_ch # M1附近区域
         data_array, label = data.get_epoch_data(select_label=label, select_ch=select_ch)
         selected_ch_names = iterative_CSP(data_array, label, select_ch)  # csp select
         df = pd.DataFrame(data=selected_ch_names)

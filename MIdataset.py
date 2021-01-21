@@ -85,7 +85,7 @@ class MIdataset(object):
             self.epoch_data = np.delete(self.epoch_data, delete_epoch_idx, 2)
             self.events = np.delete(self.events, delete_epoch_idx, 0)
         self.events[np.where(self.events[:, 2] == 12), 2] = 4
-        self.event_id = dict(left=1, right=2, foot=3, rest=4)
+        self.event_id = dict(Left=1, Right=2, Foot=3, Rest=4)
         # label = events[:, -1]
 
     def get_raw_data(self):

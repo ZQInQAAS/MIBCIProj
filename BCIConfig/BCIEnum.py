@@ -31,11 +31,24 @@ class StimType(Enum):
     Disconnect = 19
 
 
+event_id = {'Left': 1,
+            'Right': 2,
+            'Rest': 3}
+
+ch_types = ['eeg'] * 52 + ['eog'] * 2
+
 ch_names = ['Fp1', 'Fpz', 'Fp2', 'AF3', 'AF4', 'F7', 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6', 'F8',
             'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6',
             'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6',
             'PO5', 'PO3', 'POz', 'PO4', 'PO6', 'O1', 'Oz', 'O2', 'M1', 'M2', 'VEOG', 'HEOG']  # 50eeg+2ref+2eog
 
-ch_types = ['eeg'] * 52 + ['eog'] * 2
+pick_rest_ch = ['Fp1', 'Fpz', 'Fp2', 'AF3', 'AF4',
+                'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6',
+                'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6',
+                'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6']
 
-event_id = {'Left': 1, 'Right': 2, 'Rest': 3}
+pick_motor_ch = ['F5', 'F3', 'F1', 'F2', 'F4', 'F6',
+                 'FC5', 'FC3', 'FC1', 'FC2', 'FC4', 'FC6',
+                 'C5', 'C3', 'C1', 'C2', 'C4', 'C6',
+                 'CP5', 'CP3', 'CP1', 'CP2', 'CP4', 'CP6',
+                 'P5', 'P3', 'P1', 'P2', 'P4', 'P6']

@@ -1,6 +1,7 @@
 import numpy as np
 from process_tools import CSP
-from MIdataset_new import MIdataset
+# from MIdataset_new import MIdataset
+from MIdataset import MIdataset
 
 
 def iterative_CSP(data_x, label, ch_names):
@@ -54,7 +55,7 @@ def isside(ch_name, side):
     return ch_name.endswith(sideid[side])
 
 
-def pipeline():
+def pipeline(p):
     # subject_set = os.listdir(dataset_path)
     subject_set = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12']
     df = pd.DataFrame(columns=['npz_file', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'ch9', 'ch10', ])
@@ -62,7 +63,7 @@ def pipeline():
         # for s_idx in range(1):
         s_idx = 1
         s = subject_set[s_idx]
-        sub_path = os.path.join(dataset_path, s)
+        sub_path = os.path.join(p, s)
         date_files = os.listdir(sub_path)
         k = 0
         for i in range(len(date_files)):
@@ -84,11 +85,13 @@ def pipeline():
 if __name__ == '__main__':
     import os
     import pandas as pd
-    # dataset_path = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210120\Online_20210120_1341_07.npz'
-    # data = MIdataset(dataset_path)
+    # p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210120\Online_20210120_1341_07.npz'
+    # p = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean' \
+    #     r'\S4\S4_20200722\NSsignal_2020_07_22_16_22_30.npz'
+    # data = MIdataset(p)
     # data.bandpass_filter(1, 100)  # band pass
-    # # data.set_reference()  # CAR
-    # # data.removeEOGbyICA()  # ICA
+    # data.set_reference()  # CAR
+    # data.removeEOGbyICA()  # ICA
     # data.bandpass_filter(8, 30)
     # select_ch = ['F3', 'F1', 'F2', 'F4', 'FC5', 'FC3', 'C5', 'C3', 'C1','CP4', 'CP6', 'F5',
     #              'P5', 'P3', 'P1', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CP2']
@@ -96,7 +99,7 @@ if __name__ == '__main__':
     # ch = iterative_CSP(data_x, label, ch_names=select_ch)
     # df = pd.DataFrame(data=ch)
     # df.to_csv(r'testcsv.csv', header=False, index=False)
-    df = pd.read_csv(r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210120\selected_channel.csv', header=None)
+    df = pd.read_csv(r'D:\Myfiles\MIBCI_NF\process_tools\testcsv.csv', header=None)
     left = list(df.iloc[:, 0].values)
     # print(left)
     print(pd)

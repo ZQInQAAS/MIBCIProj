@@ -5,31 +5,30 @@ import numpy as np
 import pandas as pd
 from queue import Queue
 from time import strftime
+from datetime import datetime
 from scipy.integrate import simps
 from process_tools import PyPublisher
 from NSDataReader import RepeatingTimer
-from BCIConfig import BCIEvent, StimType, ch_types, ch_names
-
-rest_ch = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
-           'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4']
+from BCIConfig import BCIEvent, StimType, ch_types, ch_names, pick_rest_ch
 
 
 class Processor(PyPublisher):
     def __init__(self, main_cfg):
         PyPublisher.__init__(self)
-        self.class_list = main_cfg.stim_cfg.class_list
         self.model_path = main_cfg.subject.get_model_path()
         self.save_path = main_cfg.subject.get_date_dir()
         self.epoch_dur = 0.1  # 每多少秒判断一次
         self.proc_bar_len = main_cfg.stim_cfg.display_cue_duration/self.epoch_dur
         self.online_timer = RepeatingTimer(self.epoch_dur, self.online_run)
-        self.trial_num = 0
-        self.right_num_one_run = []
-        self.right_num_all = []
-        self.result_log = []
         self.init_data()
+        self.trial_num = 0
+        # self.right_num_one_run = []
+        # self.right_num_all = []
+        self.result_log = []
+
 
     def init_data(self):
+        self.beseline_dur = 45  # (s)
         self.predict_state = False
         self.left_threshold = 0.1
         self.right_threshold = 0.1
@@ -65,8 +64,8 @@ class Processor(PyPublisher):
             self.t0 = time.time()
             self.predict_state = True
         elif stim == StimType.EndOfBaseline:
-            self.baseline_signal = self.publish(BCIEvent.readns, duration=45*self.fs)  # 45s signals
-            self.base_power_alpha = self.cal_power_feature(self.baseline_signal, rest_ch, fmin=8, fmax=13)
+            self.baseline_signal = self.publish(BCIEvent.readns, duration=self.beseline_dur*self.fs)  # 45s signals
+            self.base_power_alpha = self.cal_power_feature(self.baseline_signal, pick_rest_ch, fmin=8, fmax=13)
             self.base_power_ERDleft = self.cal_power_feature(self.baseline_signal, self.left_ch, fmin=8, fmax=30)
             self.base_power_ERDright = self.cal_power_feature(self.baseline_signal, self.right_ch, fmin=8, fmax=30)
         elif stim == StimType.EndOfTrial:
@@ -99,6 +98,11 @@ class Processor(PyPublisher):
                 if self.wait_list != []:
                     self.wait_list.pop(0)
 
+    def avg_power(self):
+        left = np.mean(self.rela_left_power_list[-self.wait_list_maxlen:-1])
+        right = np.mean(self.rela_right_power_list[-self.wait_list_maxlen:-1])
+        return left, right
+
     def up_threshold(self):
         if self.label == 'Left':
             left_power, right_power = self.avg_power()
@@ -123,11 +127,6 @@ class Processor(PyPublisher):
             if is_up:
                 self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
                 print('Up threshold, Rest_threshold', self.rest_threshold)
-
-    def avg_power(self):
-        left = np.mean(self.rela_left_power_list[-self.wait_list_maxlen:-1])
-        right = np.mean(self.rela_right_power_list[-self.wait_list_maxlen:-1])
-        return left, right
 
     def down_threshold(self):
         if self.label == 'Left':
@@ -170,7 +169,7 @@ class Processor(PyPublisher):
                 erd = rela_left_power - rela_right_power
                 return (rela_left_power, rela_right_power), erd > self.right_threshold
         else:  # Rest
-            rest_power = self.cal_power_feature(signal, rest_ch, fmin=8, fmax=13)
+            rest_power = self.cal_power_feature(signal, pick_rest_ch, fmin=8, fmax=13)
             rela_rest_power = (rest_power - self.base_power_alpha) / self.base_power_alpha
             self.rela_rest_power_list.append(rela_rest_power)
             return rela_rest_power, rela_rest_power > self.rest_threshold
@@ -188,30 +187,31 @@ class Processor(PyPublisher):
         return power
 
     def get_result_log(self):
-
+        score = sum(self.wait_list) / len(self.wait_list)
+        score = round(score * 100, 2)
         self.trial_num = self.trial_num + 1
-        # print('————————————')
-        one_run_log = '\ntrial ' + str(self.trial_num) + ':  ' + 'cue:' + str(self.label)
-                      # '\nthis run acc:' + str(one_run_acc) + ', epoch num:' + str(epoch_num) + \
-                      # '\nall runs acc:' + str(all_acc)
-        self.result_log.append(one_run_log)
-        # print(one_run_log)
+        print('trial:{:d}, cue:{}, score: {:.2f}%'.format(self.trial_num, self.label, score))
+        self.result_log.append([self.trial_num, self.label, score])
 
     def save_log(self):
+        stime = datetime.now().strftime('%H%M')
         if self.label == 'Rest' and self.rest_threshold_list != []:
             rela_rest_pd = pd.DataFrame(data=self.rela_rest_power_list)
             rest_threshold_pd = pd.DataFrame(data=self.rest_threshold_list)
-            rela_rest_pd.to_csv(self.save_path + r'/log/relative_rest_power.csv', header=False, index=False)
-            rest_threshold_pd.to_csv(self.save_path + r'/log/rest_threshold.csv', header=False, index=False)
+            rela_rest_pd.to_csv(self.save_path + r'/log/relative_rest_power_' + stime + '.csv', header=False, index=False)
+            rest_threshold_pd.to_csv(self.save_path + r'/log/rest_threshold_' + stime + '.csv', header=False, index=False)
         elif self.right_threshold_list != [] or self.left_threshold_list != []:
             rela_right_pd = pd.DataFrame(data=self.rela_right_power_list)
             right_threshold_pd = pd.DataFrame(data=self.right_threshold_list)
-            rela_right_pd.to_csv(self.save_path + r'/log/relative_right_power.csv', header=False, index=False)
-            right_threshold_pd.to_csv(self.save_path + r'/log/right_threshold.csv', header=False, index=False)
+            rela_right_pd.to_csv(self.save_path + r'/log/relative_right_power_' + stime + '.csv', header=False, index=False)
+            right_threshold_pd.to_csv(self.save_path + r'/log/right_threshold_' + stime + '.csv', header=False, index=False)
             rela_left_pd = pd.DataFrame(data=self.rela_left_power_list)
             left_threshold_pd = pd.DataFrame(data=self.left_threshold_list)
-            rela_left_pd.to_csv(self.save_path + r'/log/relative_left_power.csv', header=False, index=False)
-            left_threshold_pd.to_csv(self.save_path + r'/log/left_threshold.csv', header=False, index=False)
+            rela_left_pd.to_csv(self.save_path + r'/log/relative_left_power_' + stime + '.csv', header=False, index=False)
+            left_threshold_pd.to_csv(self.save_path + r'/log/left_threshold_' + stime + '.csv', header=False, index=False)
+        elif not self.result_log == []:
+            trial_result_pd = pd.DataFrame(data=self.result_log)
+            trial_result_pd.to_csv(self.save_path + r'/log/online_result_' + stime + '.csv', header=False, index=False)
         else:
             print('error log saved')
         print('Online log saved successfully.')

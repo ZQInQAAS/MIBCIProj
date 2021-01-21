@@ -1,5 +1,5 @@
 import wx
-# import time
+import time
 # import subprocess
 # from pubsub import pub
 from process_tools import PyPublisher
@@ -14,6 +14,7 @@ class Interface(PyPublisher, wx.Frame):
         super(PyPublisher, self).__init__(None, title="MIBCI", size=(1200, 960))
         # self.publish(BCIEvent.stim_stop)
         self.main_cfg = main_cfg
+        self.NF_time_len = main_cfg.stim_cfg.NF_training_duration
         self.stim = None
         self.isMax = False
         self.face_num = 0
@@ -22,6 +23,7 @@ class Interface(PyPublisher, wx.Frame):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.rect0 = FloatCanvas.Rectangle((-125, 0), (0, 0), FillColor='Red')
         self.rect1 = FloatCanvas.Rectangle((-125, 0), (0, 0), FillColor='Red')
+        self.rect_t = FloatCanvas.Rectangle((-125, 0), (0, 0), FillColor='Red')
         self.Canvas = FloatCanvas.FloatCanvas(self, -1, size=(1200, 960), ProjectionFun=None,
                                               Debug=0, BackgroundColor="Black", )
 
@@ -31,6 +33,7 @@ class Interface(PyPublisher, wx.Frame):
             self.clear()
             self.Canvas.AddObject(self.rect0)
             self.Canvas.AddObject(self.rect1)
+            self.Canvas.AddObject(self.rect_t)
             return
         if stim == StimType.EndOfTrial:
             self.clear()
@@ -42,6 +45,7 @@ class Interface(PyPublisher, wx.Frame):
             path = r'cue_material/cross_blue.png'
             self.draw_img(path, (0, 0))
             self.is_rest = True
+            self.t0 = time.time()
         elif stim == StimType.Left:
             path = r'cue_material/left_hand.png'
             self.draw_img(path, (-400, 0))
@@ -49,11 +53,14 @@ class Interface(PyPublisher, wx.Frame):
             path = r'cue_material/right_hand.png'
             self.draw_img(path, (400, 0))
         elif stim == StimType.LRCue:
+            self.t0 = time.time()
             self.is_rest = False
             path = r'cue_material/left_hand.png'
             self.draw_img(path, (-400, 0))
             path = r'cue_material/right_hand.png'
             self.draw_img(path, (400, 0))
+        elif stim in [StimType.LRNF, StimType.RestNF] and (time.time() - self.t0) > 5:
+            self.istimefeedback = True
         if stim == StimType.ExperimentStop:
             self.clear()
             self.Destroy()
@@ -85,7 +92,7 @@ class Interface(PyPublisher, wx.Frame):
         color = 'Green' if is_reached else 'Yellow'
         print(score[1]-score[0], color)
         bar_width = 50
-        bar_bias = 75
+        bar_bias = 100
         if isinstance(score, tuple):
             self.rect0.SetShape((-bar_bias - bar_width, 0), (bar_width, score[0] * 150))  # ((x,y), (w,h))
             self.rect0.SetFillColor(color)
@@ -102,6 +109,13 @@ class Interface(PyPublisher, wx.Frame):
             self.rect0.SetFillColor(color)
             self.Canvas.RemoveObject(self.rect0)
             self.Canvas.AddObject(self.rect0)
+        if self.istimefeedback:
+            bar_width = (time.time() - self.t0) * 1200 / self.NF_time_len
+            self.rect_t.SetShape((-700, -600), (bar_width, 50))  # ((x,y), (w,h))
+            self.rect_t.SetFillColor('grey')
+            self.rect_t.SetLineColor('grey')
+            self.Canvas.RemoveObject(self.rect_t)
+            self.Canvas.AddObject(self.rect_t)
         self.Canvas.Draw()
 
     def online_face(self):
