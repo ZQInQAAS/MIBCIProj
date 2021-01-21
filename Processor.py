@@ -9,7 +9,13 @@ from datetime import datetime
 from scipy.integrate import simps
 from process_tools import PyPublisher
 from NSDataReader import RepeatingTimer
-from BCIConfig import BCIEvent, StimType, ch_types, ch_names, pick_rest_ch
+from BCIConfig import BCIEvent, StimType
+# from BCIConfig import ch_types, ch_names, pick_rest_ch
+
+ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
+            'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6']  # NS random
+ch_types = ['eeg'] * 26  # NS random
+pick_rest_ch = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz']  # NS random
 
 
 class Processor(PyPublisher):
@@ -28,7 +34,7 @@ class Processor(PyPublisher):
 
 
     def init_data(self):
-        self.beseline_dur = 45  # (s)
+        self.beseline_dur = 2  # (s)
         self.predict_state = False
         self.left_threshold = 0.1
         self.right_threshold = 0.1
