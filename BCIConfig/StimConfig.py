@@ -76,6 +76,6 @@ class StimConfig(object):
 if __name__ == '__main__':
     import numpy as np
     stim = StimConfig()
-    seq = stim.generate_stim_list('online')
+    seq = stim.generate_stim_list('Online')
     s = np.array(seq)
     print(seq)

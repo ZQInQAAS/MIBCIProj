@@ -54,7 +54,7 @@ class Processor(PyPublisher):
         self.info.set_montage('standard_1005')
 
     def handle_stim(self, stim):
-        print(time.time(), stim)
+        print('processor', time.time(), stim)
         if stim in [StimType.Left, StimType.Right, StimType.Rest]:
             self.label, self.label_idx = stim.name, stim.value
         if stim == StimType.LRCue:

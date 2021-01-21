@@ -9,9 +9,9 @@ from process_tools import RepeatingTimer
 
 class NSDataReader(object):
     def __init__(self):
-        # self.address = '192.168.11.123', 9889  # 有线
+        self.address = '192.168.11.123', 9889  # 有线
         # self.address = '10.168.2.164', 9889  # QAAS_Bridge wifi
-        self.address = '192.168.43.166', 9889
+        # self.address = '192.168.43.166', 9889  # ZQ热点
         self.socket = socket.socket()
         self.socket.settimeout(15)
         self.repeat_timer = RepeatingTimer(0.02, self._read_data)  # 循环时间应<0.02
@@ -71,8 +71,12 @@ class NSDataReader(object):
 
     def get_ns_signal(self, duration=None):
         # signal: (sample, channal)
-        signal = np.array(self.signal)
-        return signal[-duration:, 0:-1] if duration else signal[:, 0:-1]  # remove label column
+        if not self.signal:
+            print('Get empty ns data.')
+            return
+        else:
+            signal = np.array(self.signal)
+            return signal[-duration:, 0:-1] if duration else signal[:, 0:-1]  # remove label column
 
     def get_sample_rate(self):
         return self.BSampleRate

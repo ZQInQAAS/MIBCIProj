@@ -16,7 +16,7 @@ class Pipeline(object):
         self.stim_cfg = main_cfg.stim_cfg
         self.stim = Stimulator(main_cfg)
         self.save_data_path = main_cfg.subject.get_date_dir()
-        self.is_feedback = True if self.main_cfg.session_type in ['online', 'RestNF', 'LRNF'] else False
+        self.is_feedback = True if self.main_cfg.session_type in ['Online', 'RestNF', 'LRNF'] else False
         self.subscribe()
 
     def subscribe(self):

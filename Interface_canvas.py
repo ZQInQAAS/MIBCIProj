@@ -20,6 +20,7 @@ class Interface(PyPublisher, wx.Frame):
         self.face_num = 0
         self.e_width = 1680
         self.e_height = 1050
+        self.istimefeedback = False
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.rect0 = FloatCanvas.Rectangle((-125, 0), (0, 0), FillColor='Red')
         self.rect1 = FloatCanvas.Rectangle((-125, 0), (0, 0), FillColor='Red')
@@ -32,6 +33,7 @@ class Interface(PyPublisher, wx.Frame):
         if stim == StimType.ExperimentStart:
             self.clear()
             self.Canvas.AddObject(self.rect0)
+            self.Canvas.
             self.Canvas.AddObject(self.rect1)
             self.Canvas.AddObject(self.rect_t)
             return
@@ -47,9 +49,11 @@ class Interface(PyPublisher, wx.Frame):
             self.is_rest = True
             self.t0 = time.time()
         elif stim == StimType.Left:
+            self.t0 = time.time()
             path = r'cue_material/left_hand.png'
             self.draw_img(path, (-400, 0))
         elif stim == StimType.Right:
+            self.t0 = time.time()
             path = r'cue_material/right_hand.png'
             self.draw_img(path, (400, 0))
         elif stim == StimType.LRCue:
@@ -90,10 +94,10 @@ class Interface(PyPublisher, wx.Frame):
 
     def online_bar(self, score, is_reached):
         color = 'Green' if is_reached else 'Yellow'
-        print(score[1]-score[0], color)
         bar_width = 50
         bar_bias = 100
         if isinstance(score, tuple):
+            print(score[1]-score[0], color)
             self.rect0.SetShape((-bar_bias - bar_width, 0), (bar_width, score[0] * 150))  # ((x,y), (w,h))
             self.rect0.SetFillColor(color)
             self.rect0.SetLineColor(color)
@@ -105,6 +109,7 @@ class Interface(PyPublisher, wx.Frame):
             self.Canvas.RemoveObject(self.rect1)
             self.Canvas.AddObject(self.rect1)
         else:
+            print(score, color)
             self.rect0.SetShape((-bar_width / 2, 0), (bar_width, score * 150))
             self.rect0.SetFillColor(color)
             self.Canvas.RemoveObject(self.rect0)

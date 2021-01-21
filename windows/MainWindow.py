@@ -99,7 +99,7 @@ class MainWindow(wx.Frame):
             return
         self.session_type = event.GetEventObject().GetName()
         task_label = event.GetEventObject().GetLabel()
-        # if self.session_type == 'online' and not os.path.exists(self.subject.get_model_path()):
+        # if self.session_type == 'Online' and not os.path.exists(self.subject.get_model_path()):
         #     self.statusBar.SetStatusText(r'未找到训练模型')
         #     return
         # self.subject.set_date_dir()
