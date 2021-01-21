@@ -112,7 +112,7 @@ class Interface(PyPublisher, wx.Frame):
         t = time.time() - self.t0
         if 1000 > t > 5:
             bar_width = t * 1200 / self.NF_time_len
-            self.rect_t.SetShape((-700, -600), (bar_width, 50))  # ((x,y), (w,h))
+            self.rect_t.SetShape((-700, -400), (bar_width, 50))  # ((x,y), (w,h))
             self.rect_t.SetFillColor('grey')
             self.rect_t.SetLineColor('grey')
             # self.Canvas.RemoveObject(self.rect_t)

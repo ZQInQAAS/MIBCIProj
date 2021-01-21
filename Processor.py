@@ -74,7 +74,7 @@ class Processor(PyPublisher):
         elif stim == StimType.ExperimentStop:
             print('stop processor')
             self.predict_state = False
-            self.online_timer.stop()
+            self.online_timer.cancel()
         else:
             return
 

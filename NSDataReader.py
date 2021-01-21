@@ -61,11 +61,11 @@ class NSDataReader(object):
         self.data_time.append(time())
 
     def stop_data_reader(self):
-        self.repeat_timer.cancel()
         self._send_command_to_ns(3, 4)
         self._send_command_to_ns(2, 2)
         self._send_command_to_ns(1, 2)
         sleep(0.1)
+        self.repeat_timer.cancel()
         self.socket.close()
         print('Close scan4.5 server successfully.')
 
