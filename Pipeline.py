@@ -10,8 +10,8 @@ from Interface_canvas import Interface
 class Pipeline(object):
     def __init__(self, main_cfg):
         self.main_cfg = main_cfg
-        self.ns_reader = NSDataReader()
-        # self.ns_reader = NSDataReaderRandom()
+        # self.ns_reader = NSDataReader()
+        self.ns_reader = NSDataReaderRandom()
         self.interface = Interface(main_cfg)
         self.stim_cfg = main_cfg.stim_cfg
         self.stim = Stimulator(main_cfg)
