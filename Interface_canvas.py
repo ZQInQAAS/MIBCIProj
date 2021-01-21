@@ -16,6 +16,7 @@ class Interface(PyPublisher, wx.Frame):
         self.main_cfg = main_cfg
         self.NF_time_len = main_cfg.stim_cfg.NF_training_duration
         self.stim = None
+        self.t0 = 0
         self.isMax = False
         self.face_num = 0
         self.e_width = 1680
@@ -30,14 +31,7 @@ class Interface(PyPublisher, wx.Frame):
 
     def handle_stim(self, stim):
         self.stim = stim
-        if stim == StimType.ExperimentStart:
-            self.clear()
-            self.Canvas.AddObject(self.rect0)
-            self.Canvas.
-            self.Canvas.AddObject(self.rect1)
-            self.Canvas.AddObject(self.rect_t)
-            return
-        if stim == StimType.EndOfTrial:
+        if stim in [StimType.ExperimentStart, StimType.EndOfTrial, StimType.EndOfBaseline]:
             self.clear()
             return
         elif stim == StimType.CrossOnScreen:
@@ -47,25 +41,25 @@ class Interface(PyPublisher, wx.Frame):
             path = r'cue_material/cross_blue.png'
             self.draw_img(path, (0, 0))
             self.is_rest = True
-            self.t0 = time.time()
         elif stim == StimType.Left:
-            self.t0 = time.time()
             path = r'cue_material/left_hand.png'
             self.draw_img(path, (-400, 0))
         elif stim == StimType.Right:
-            self.t0 = time.time()
             path = r'cue_material/right_hand.png'
             self.draw_img(path, (400, 0))
         elif stim == StimType.LRCue:
-            self.t0 = time.time()
             self.is_rest = False
             path = r'cue_material/left_hand.png'
             self.draw_img(path, (-400, 0))
             path = r'cue_material/right_hand.png'
             self.draw_img(path, (400, 0))
-        elif stim in [StimType.LRNF, StimType.RestNF] and (time.time() - self.t0) > 5:
-            self.istimefeedback = True
-        if stim == StimType.ExperimentStop:
+        elif stim in [StimType.LRNF, StimType.RestNF]:
+            self.t0 = time.time()
+            self.Canvas.AddObject(self.rect0)
+            self.Canvas.AddObject(self.rect_t)
+            if stim == StimType.LRNF:
+                self.Canvas.AddObject(self.rect1)
+        elif stim == StimType.ExperimentStop:
             self.clear()
             self.Destroy()
         else:
@@ -74,7 +68,7 @@ class Interface(PyPublisher, wx.Frame):
     def draw_img(self, path, xy):
         image = wx.Image(path)
         img = FloatCanvas.Bitmap(image, xy, Position='cc')
-        self.Canvas.AddObject(img)
+        x = self.Canvas.AddObject(img)
         self.Canvas.Draw()
 
     def clear(self):
@@ -104,24 +98,26 @@ class Interface(PyPublisher, wx.Frame):
             self.rect1.SetShape((bar_bias, 0), (bar_width, score[1] * 150))
             self.rect1.SetFillColor(color)
             self.rect1.SetLineColor(color)
-            self.Canvas.RemoveObject(self.rect0)
-            self.Canvas.AddObject(self.rect0)
-            self.Canvas.RemoveObject(self.rect1)
-            self.Canvas.AddObject(self.rect1)
+            # self.Canvas.RemoveObject(self.rect0)
+            # self.Canvas.AddObject(self.rect0)
+            # self.Canvas.RemoveObject(self.rect1)
+            # self.Canvas.AddObject(self.rect1)
         else:
             print(score, color)
             self.rect0.SetShape((-bar_width / 2, 0), (bar_width, score * 150))
             self.rect0.SetFillColor(color)
-            self.Canvas.RemoveObject(self.rect0)
-            self.Canvas.AddObject(self.rect0)
-        if self.istimefeedback:
-            bar_width = (time.time() - self.t0) * 1200 / self.NF_time_len
+            self.rect0.SetLineColor(color)
+            # self.Canvas.RemoveObject(self.rect0)
+            # self.Canvas.AddObject(self.rect0)
+        t = time.time() - self.t0
+        if 1000 > t > 5:
+            bar_width = t * 1200 / self.NF_time_len
             self.rect_t.SetShape((-700, -600), (bar_width, 50))  # ((x,y), (w,h))
             self.rect_t.SetFillColor('grey')
             self.rect_t.SetLineColor('grey')
-            self.Canvas.RemoveObject(self.rect_t)
-            self.Canvas.AddObject(self.rect_t)
-        self.Canvas.Draw()
+            # self.Canvas.RemoveObject(self.rect_t)
+            # self.Canvas.AddObject(self.rect_t)
+        self.Canvas.Draw(Force=True)
 
     def online_face(self):
         print('face', self.face_num)

@@ -40,16 +40,18 @@ class StimConfig(object):
                     else:
                         stim_sequence.append((StimType.LRNF, self.display_cue_duration - 1))
                 stim_sequence.append((StimType.EndOfTrial, self.cue_interval_duration + random.randint(0, 1)))  # 随机间隔
-        elif session_type == 'Rest_nonNF':
-            stim_sequence.append((StimType.Rest, self.NF_training_duration))
-        elif session_type == 'LR_nonNF':
-            stim_sequence.append((StimType.LRCue, self.NF_training_duration))
-        elif session_type == 'RestNF':
-            stim_sequence.append((StimType.Rest, 5))
-            stim_sequence.append((StimType.RestNF, self.NF_training_duration - 5))
-        else:  # LRNF
-            stim_sequence.append((StimType.LRCue, 5))
-            stim_sequence.append((StimType.LRNF, self.NF_training_duration - 5))
+        else:
+            stim_sequence.append((StimType.CrossOnScreen, 1))
+            if session_type == 'Rest_nonNF':
+                stim_sequence.append((StimType.Rest, self.NF_training_duration))
+            elif session_type == 'LR_nonNF':
+                stim_sequence.append((StimType.LRCue, self.NF_training_duration))
+            elif session_type == 'RestNF':
+                stim_sequence.append((StimType.Rest, 5))
+                stim_sequence.append((StimType.RestNF, self.NF_training_duration - 5))
+            else:  # LRNF
+                stim_sequence.append((StimType.LRCue, 5))
+                stim_sequence.append((StimType.LRNF, self.NF_training_duration - 5))
         stim_sequence.append((StimType.ExperimentStop, 1))
         return stim_sequence
 

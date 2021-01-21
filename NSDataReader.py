@@ -121,8 +121,5 @@ class NSDataReaderRandom(object):
         signal = np.array(self.signal)
         return signal[-duration:, :] if duration else signal[:, :]  # remove label column
 
-    def get_head_settings(self):
-        ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
-                    'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6']
-        ch_types = ['eeg'] * self.ch_num
-        return {'sample_rate': self.fs, 'ch_names': ch_names, 'ch_types': ch_types}
+    def get_sample_rate(self):
+        return self.fs

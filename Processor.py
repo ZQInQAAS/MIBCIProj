@@ -54,7 +54,7 @@ class Processor(PyPublisher):
         self.info.set_montage('standard_1005')
 
     def handle_stim(self, stim):
-        print('processor', time.time(), stim)
+        # print('processor', time.time(), stim)
         if stim in [StimType.Left, StimType.Right, StimType.Rest]:
             self.label, self.label_idx = stim.name, stim.value
         if stim == StimType.LRCue:
@@ -106,7 +106,7 @@ class Processor(PyPublisher):
     def up_threshold(self):
         if self.label == 'Left':
             left_power, right_power = self.avg_power()
-            erd = right_power - left_power
+            erd = left_power - right_power
             self.left_threshold, is_up = (self.left_threshold, False) \
                 if self.left_threshold > (erd - self.t_stride) else (erd - self.t_stride, True)
             if is_up:
@@ -114,7 +114,7 @@ class Processor(PyPublisher):
                 print('Up threshold. Left_threshold:', self.left_threshold)
         elif self.label == 'Right':
             left_power, right_power = self.avg_power()
-            erd = left_power - right_power
+            erd = right_power - left_power
             self.right_threshold, is_up = (self.right_threshold, False) \
                 if self.right_threshold > (erd - self.t_stride) else (erd - self.t_stride, True)
             if is_up:
@@ -158,15 +158,15 @@ class Processor(PyPublisher):
         if self.label in ['Left', 'Right']:
             left_power = self.cal_power_feature(signal, self.left_ch, fmin=8, fmax=30)
             right_power = self.cal_power_feature(signal, self.right_ch, fmin=8, fmax=30)
-            rela_left_power = (self.base_power_ERDleft - left_power) / self.base_power_ERDleft
-            rela_right_power = (self.base_power_ERDright - right_power) / self.base_power_ERDright
+            rela_left_power = (left_power - self.base_power_ERDleft) / self.base_power_ERDleft
+            rela_right_power = (right_power - self.base_power_ERDright) / self.base_power_ERDright
             self.rela_left_power_list.append(rela_left_power)
             self.rela_right_power_list.append(rela_right_power)
             if self.label == 'Left':
-                erd = rela_right_power - rela_left_power
+                erd = rela_left_power - rela_right_power
                 return (rela_left_power, rela_right_power), erd > self.left_threshold
             else:
-                erd = rela_left_power - rela_right_power
+                erd = rela_right_power - rela_left_power
                 return (rela_left_power, rela_right_power), erd > self.right_threshold
         else:  # Rest
             rest_power = self.cal_power_feature(signal, pick_rest_ch, fmin=8, fmax=13)
