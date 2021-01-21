@@ -111,8 +111,8 @@ class Interface(PyPublisher, wx.Frame):
             # self.Canvas.AddObject(self.rect0)
         t = time.time() - self.t0
         if 1000 > t > 5:
-            bar_width = t * 1200 / self.NF_time_len
-            self.rect_t.SetShape((-700, -400), (bar_width, 50))  # ((x,y), (w,h))
+            bar_width = t * 1400 / self.NF_time_len
+            self.rect_t.SetShape((-700, -500), (bar_width, 10))  # ((x,y), (w,h))
             self.rect_t.SetFillColor('grey')
             self.rect_t.SetLineColor('grey')
             # self.Canvas.RemoveObject(self.rect_t)
@@ -136,7 +136,7 @@ class Interface(PyPublisher, wx.Frame):
             path = r'cue_material/smiley' + str(facepath_id) + '.png'
             face_pos = num_oneside % num_each_line + 1  # 第N个
             isleft = -1 if (self.face_num % 2) == 1 else 1  # 奇数是左，偶数是右
-            self.draw_img(path, (700 * isleft, 500 - face_pos * 100))
+            self.draw_img(path, (800 * isleft, 500 - face_pos * 100))
         self.face_num = self.face_num + 1
 
 
