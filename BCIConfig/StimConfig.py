@@ -13,8 +13,8 @@ from BCIConfig import StimType
 class StimConfig(object):
     def __init__(self):
         self.class_list = ['Left', 'Right', 'Rest']
-        self.each_class_num = 2
-        self.baseline_duration = 4  # 1 min
+        self.each_class_num = 15
+        self.baseline_duration = 5  # 1 min
         self.cue_interval_duration = 3
         self.display_cue_duration = 5
         self.NF_training_duration = 305  # 5 min
@@ -24,7 +24,7 @@ class StimConfig(object):
 
     def generate_stim_list(self, session_type):
         stim_sequence = list()
-        stim_sequence.append((StimType.ExperimentStart, 2))
+        stim_sequence.append((StimType.ExperimentStart, 10))
         stim_sequence.append((StimType.CrossOnScreen, self.baseline_duration))
         stim_sequence.append((StimType.EndOfBaseline, 2))
         if session_type in ['Acq', 'Online']:
