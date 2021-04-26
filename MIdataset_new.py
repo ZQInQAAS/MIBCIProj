@@ -108,13 +108,13 @@ class MIdataset(object):
         ica.apply(self.raw_mne)
 
 if __name__ == '__main__':
-    path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean\S4\S4_20200721' \
-           r'\NSsignal_2020_07_21_16_05_04.npz'
-    path = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210119\acq_20210119_2046_51.npz'
+    # path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean\S4\S4_20200721' \
+    #        r'\NSsignal_2020_07_21_16_05_04.npz'
+    path = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\wmm\wmm_20210126\Online_20210126_1525_33.npz'
     # config_p =r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\config.npz'
     d = MIdataset(path)
     # d.set_reference()
-    # d.plot_raw_psd()
+    d.plot_raw_psd()
     # d.plot_events()
     # d.plot_epoch()
     d.plot_tf_analysis('left', 'C3')

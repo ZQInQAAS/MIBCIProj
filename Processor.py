@@ -10,12 +10,12 @@ from scipy.integrate import simps
 from process_tools import PyPublisher
 from NSDataReader import RepeatingTimer
 from BCIConfig import BCIEvent, StimType
-# from BCIConfig import ch_types, ch_names, pick_rest_ch
+from BCIConfig import ch_types, ch_names, pick_rest_ch
 
-ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
-            'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6']  # NS random
-ch_types = ['eeg'] * 26  # NS random
-pick_rest_ch = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz']  # NS random
+# ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
+#             'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6']  # NS random
+# ch_types = ['eeg'] * 26  # NS random
+# pick_rest_ch = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz']  # NS random
 
 
 class Processor(PyPublisher):
@@ -34,7 +34,7 @@ class Processor(PyPublisher):
 
 
     def init_data(self):
-        self.beseline_dur = 2  # (s)
+        self.beseline_dur = 3  # (s)
         self.predict_state = False
         self.left_threshold = 0.1
         self.right_threshold = 0.1
@@ -63,14 +63,15 @@ class Processor(PyPublisher):
         # print('processor', time.time(), stim)
         if stim in [StimType.Left, StimType.Right, StimType.Rest]:
             self.label, self.label_idx = stim.name, stim.value
-        if stim == StimType.LRCue:
+        elif stim == StimType.LRCue:
             self.label, self.label_idx = 'Right', stim.value  # 右先
         elif stim in [StimType.LRNF, StimType.RestNF]:
             self.wait_list = []
             self.t0 = time.time()
             self.predict_state = True
         elif stim == StimType.EndOfBaseline:
-            self.baseline_signal = self.publish(BCIEvent.readns, duration=self.beseline_dur*self.fs)  # 45s signals
+            baseline_signal = self.publish(BCIEvent.readns, duration=self.beseline_dur*self.fs)  # 45s signals
+            self.baseline_signal = np.array(baseline_signal)
             self.base_power_alpha = self.cal_power_feature(self.baseline_signal, pick_rest_ch, fmin=8, fmax=13)
             self.base_power_ERDleft = self.cal_power_feature(self.baseline_signal, self.left_ch, fmin=8, fmax=30)
             self.base_power_ERDright = self.cal_power_feature(self.baseline_signal, self.right_ch, fmin=8, fmax=30)
@@ -78,17 +79,22 @@ class Processor(PyPublisher):
             self.predict_state = False
             self.get_result_log()
         elif stim == StimType.ExperimentStop:
-            print('stop processor')
-            self.predict_state = False
             self.online_timer.cancel()
+            self.save_log()
+            print('stop processor')
         else:
             return
 
     def online_run(self):
         if self.predict_state:
-            signal = self.publish(BCIEvent.readns, duration=500)  # signal (sample, channal)
+            signal = self.publish(BCIEvent.readns, duration=500)
+            signal = np.array(signal)  # signal (sample, channal)
             rela_power, is_reached = self.is_reached_threshold(signal)
-            self.publish(BCIEvent.online_bar, rela_power, is_reached)
+            # print(time.time(), 'processor')
+            try:
+                self.publish(BCIEvent.online_bar, rela_power, is_reached)
+            except RuntimeError:
+                print('Interface has been deleted.')
             self.wait_list.append(is_reached)
             if len(self.wait_list) == self.wait_list_maxlen:
                 if sum(self.wait_list) > len(self.wait_list)*0.65:  # sum(self.wait_list) == len(self.wait_list)
@@ -219,32 +225,40 @@ class Processor(PyPublisher):
             trial_result_pd = pd.DataFrame(data=self.result_log)
             trial_result_pd.to_csv(self.save_path + r'/log/online_result_' + stime + '.csv', header=False, index=False)
         else:
-            print('error log saved')
+            print('no log saved.')
         print('Online log saved successfully.')
 
 
+
 if __name__ == '__main__':
-    from MIdataset import MIdataset
-    dataset_path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean'
-    data_path = r'\S4\S4_20200721\NSsignal_2020_07_21_16_15_11.npz'
-    data = MIdataset(dataset_path + data_path)
+    from MIdataset_new import MIdataset
+    # dataset_path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean'
+    # data_path = r'\S4\S4_20200721\NSsignal_2020_07_21_16_15_11.npz'
+    p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\wmm\wmm_20210126\Online_20210126_1525_33.npz'
+    data = MIdataset(p)
     data.set_reference()
     signal = data.get_raw_data()
-    signal1 = signal[6000:6500, :]
+    signal1 = signal[10000:10500, :]
     p = Processor('1')
     p.label = 'Left'
     p.fs = 500
     p.left_ch = ['F3', 'F1', 'C2', 'C4', 'C6']
     p.right_ch = ['FC2', 'FC4', 'FC5', 'FC3', 'FC1']
-    p.ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
-                  'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'F5', 'AF3', 'AF4', 'P5',
-                  'P3', 'P1', 'Pz', 'P2', 'P4', 'P6', 'PO3', 'POz', 'PO4', 'Oz', 'F6']  # 41ch EEG
-    p.ch_types = ['eeg'] * 41
-    p.info = mne.create_info(p.ch_names, p.fs, p.ch_types)
+    # p.ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
+    #               'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'F5', 'AF3', 'AF4', 'P5',
+    #               'P3', 'P1', 'Pz', 'P2', 'P4', 'P6', 'PO3', 'POz', 'PO4', 'Oz', 'F6']  # 41ch EEG
+    # p.ch_types = ['eeg'] * 41
+    p.info = mne.create_info(ch_names[:-2], p.fs, ch_types[:-2])
     p.info.set_montage('standard_1005')
-    p.fs = 500
     p.baseline_signal = signal[7000:9500, :]
     # p.base_power_alpha = p.cal_power_feature(p.baseline_signal, rest_ch, fmin=8, fmax=13)
-    p.base_power_ERDleft = p.cal_power_feature(p.baseline_signal, p.left_ch, fmin=8, fmax=30)
-    p.base_power_ERDright = p.cal_power_feature(p.baseline_signal, p.right_ch, fmin=8, fmax=30)
-    is_reached = p.is_reached_threshold(signal1)
+    t0 = time.time()
+    for i in range(100):
+        time.sleep(1)
+        p.base_power_ERDleft = p.cal_power_feature(p.baseline_signal, p.left_ch, fmin=8, fmax=30)
+        p.base_power_ERDright = p.cal_power_feature(p.baseline_signal, p.right_ch, fmin=8, fmax=30)
+        is_reached = p.is_reached_threshold(signal1)
+        print(time.time()-t0, is_reached)
+        t0 = time.time()
+    # p.base_power_ERDright = p.cal_power_feature(p.baseline_signal, p.right_ch, fmin=8, fmax=30)
+    # is_reached = p.is_reached_threshold(signal1)

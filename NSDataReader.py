@@ -1,3 +1,4 @@
+import sys
 import sched
 import socket
 import struct
@@ -14,7 +15,7 @@ class NSDataReader(object):
         # self.address = '192.168.43.166', 9889  # ZQ热点
         self.socket = socket.socket()
         self.socket.settimeout(15)
-        self.repeat_timer = RepeatingTimer(0.02, self._read_data)  # 循环时间应<0.02
+        self.repeat_timer = RepeatingTimer(0.01, self._read_data)  # 循环时间应<0.02
         self.signal = []
         self.data_time = []
         self.count = 0
@@ -26,7 +27,7 @@ class NSDataReader(object):
         self.repeat_timer.start()
 
     def _read_header(self):
-        self._send_command_to_ns(3, 5)
+        self._send_command_to_ns(3, 5)  # request for basic info
         sleep(0.1)
         # get basic information
         self.BasicInfo = self.socket.recv(1024)
@@ -44,28 +45,30 @@ class NSDataReader(object):
             self.pattern = '<h' if self.BDataSize == 2 else '<i'
             self.ch_num = self.BEegChannelNum + self.BEventChannelNum
             # self.T = self.BlockPnts / self.BSampleRate / 2
-        self._send_command_to_ns(2, 1)
-        self._send_command_to_ns(3, 3)
+        else:
+            sys.exit(0)
+        self._send_command_to_ns(2, 1)  # server/ start acquisition
+        self._send_command_to_ns(3, 3)  # client/ request to start sending data
 
     def _read_data(self):
         while True:
             data_head = self.socket.recv(12)
             if len(data_head) != 0:
                 break
-        size = int.from_bytes(data_head[8:12], byteorder='big')
+        size = int.from_bytes(data_head[8:12], byteorder='big')  # 4400
         data = bytearray()
         while len(data) < size:
             data += self.socket.recv(size - len(data))
-        data = [i[0] * self.BResolution for i in struct.iter_unpack(self.pattern, data)]
-        self.signal += [data[i: i + self.ch_num] for i in range(0, len(data), self.ch_num)]
+        data = [i[0] * self.BResolution for i in struct.iter_unpack(self.pattern, data)]  # (ch_num*20,)  1100
+        self.signal += [data[i: i + self.ch_num - 1] for i in range(0, len(data), self.ch_num)]  # remove label column
         self.data_time.append(time())
 
     def stop_data_reader(self):
-        self._send_command_to_ns(3, 4)
-        self._send_command_to_ns(2, 2)
-        self._send_command_to_ns(1, 2)
-        sleep(0.1)
         self.repeat_timer.cancel()
+        self._send_command_to_ns(3, 4)  # client/ request to stop sending data
+        self._send_command_to_ns(2, 2)  # server/ stop acquisition
+        self._send_command_to_ns(1, 2)  # general/ closing up connection
+        sleep(1)
         self.socket.close()
         print('Close scan4.5 server successfully.')
 
@@ -75,8 +78,7 @@ class NSDataReader(object):
             print('Get empty ns data.')
             return
         else:
-            signal = np.array(self.signal)
-            return signal[-duration:, 0:-1] if duration else signal[:, 0:-1]  # remove label column
+            return self.signal[-duration:] if duration else self.signal
 
     def get_sample_rate(self):
         return self.BSampleRate
@@ -117,10 +119,20 @@ class NSDataReaderRandom(object):
         print('Close neuroscan random server.')
 
     def get_ns_signal(self, duration=None):
-        self.signal = self.data[self.i*500:self.i*500+1000, :]
-        self.i = self.i+1
-        signal = np.array(self.signal)
-        return signal[-duration:, :] if duration else signal[:, :]  # remove label column
+        # self.signal = self.data[self.i*500:self.i*500+1000, :]
+        # self.i = self.i+1
+        # signal = np.array(self.signal)
+        signal = self.signal
+        return signal[-duration:] if duration else signal  # remove label column
+
 
     def get_sample_rate(self):
         return self.fs
+
+
+if __name__ == '__main__':
+    ns = NSDataReaderRandom()
+    for i in range(10000):
+        ns._read_data()
+        s = ns.get_ns_signal(5)
+        print(time())

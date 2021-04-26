@@ -10,8 +10,8 @@ from Interface_canvas import Interface
 class Pipeline(object):
     def __init__(self, main_cfg):
         self.main_cfg = main_cfg
-        # self.ns_reader = NSDataReader()
-        self.ns_reader = NSDataReaderRandom()
+        self.ns_reader = NSDataReader()
+        # self.ns_reader = NSDataReaderRandom()
         self.interface = Interface(main_cfg)
         self.stim_cfg = main_cfg.stim_cfg
         self.stim = Stimulator(main_cfg)
@@ -34,7 +34,7 @@ class Pipeline(object):
             self.processor.subscribe(BCIEvent.online_bar, self.interface.online_bar)
             self.processor.subscribe(BCIEvent.online_face, self.interface.online_face)
             # self.processor.subscribe(BCIEvent.online_ctrl, main_cfg.exo.online_feedback)
-            self.stim.subscribe(BCIEvent.stim_stop, self.processor.save_log)
+            # self.stim.subscribe(BCIEvent.stim_stop, self.processor.save_log)
 
     def start(self):
         self.ns_reader.start()
@@ -47,6 +47,7 @@ class Pipeline(object):
     def save_data(self):
         # nsheader_dict = self.ns_reader.get_head_settings()
         ns_signal = self.ns_reader.get_ns_signal()
+        ns_signal = np.array(ns_signal)
         events, stim_log = self.stim.get_stimdata(self.ns_reader.data_time, ns_signal.shape[0])
         event_id_dict = self.main_cfg.stim_cfg.get_class_dict()
         # stim_pram_dict = self.main_cfg.stim_cfg.get_stim_pram()

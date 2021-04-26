@@ -91,7 +91,7 @@ class Interface(PyPublisher, wx.Frame):
         bar_width = 50
         bar_bias = 100
         if isinstance(score, tuple):
-            print(score[1]-score[0], color)
+            # print(time.time(), score[1]-score[0], color)
             self.rect0.SetShape((-bar_bias - bar_width, 0), (bar_width, score[0] * 150))  # ((x,y), (w,h))
             self.rect0.SetFillColor(color)
             self.rect0.SetLineColor(color)
@@ -103,7 +103,7 @@ class Interface(PyPublisher, wx.Frame):
             # self.Canvas.RemoveObject(self.rect1)
             # self.Canvas.AddObject(self.rect1)
         else:
-            print(score, color)
+            # print(time.time(), score, color)
             self.rect0.SetShape((-bar_width / 2, 0), (bar_width, score * 150))
             self.rect0.SetFillColor(color)
             self.rect0.SetLineColor(color)
@@ -138,8 +138,6 @@ class Interface(PyPublisher, wx.Frame):
             isleft = -1 if (self.face_num % 2) == 1 else 1  # 奇数是左，偶数是右
             self.draw_img(path, (800 * isleft, 500 - face_pos * 100))
         self.face_num = self.face_num + 1
-
-
 
 
 if __name__ == '__main__':
