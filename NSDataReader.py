@@ -97,12 +97,13 @@ class NSDataReaderRandom(object):
         self.data_time = []
         self.fs = 500  # 数据生成速度无法达到500采样
         self.repeat_timer = RepeatingTimer(0.1, self._read_data)
-        # path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean' \
-        #        r'\S4\S4_20200721\NSsignal_2020_07_21_16_05_04.npz'
-        # npz_data_dict = dict(np.load(path))
-        # data = npz_data_dict['signal']  # (samples, channels)
-        # self.data = data[:, 0:27]
-        # self.i = 0
+
+        path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean' \
+               r'\S4\S4_20200721\NSsignal_2020_07_21_16_05_04.npz'
+        npz_data_dict = dict(np.load(path))
+        data = npz_data_dict['signal']  # (samples, channels)
+        self.data = data[:, 0:26]
+        self.i = 0
 
     def start(self):
         self.repeat_timer.start()
@@ -116,8 +117,8 @@ class NSDataReaderRandom(object):
         print('Close neuroscan random server.')
 
     def get_ns_signal(self, duration=None):
-        # self.signal = self.data[self.i*500:self.i*500+1000, :]
-        # self.i = self.i+1
+        self.signal = self.data[self.i*500:self.i*500+1000, :]
+        self.i = self.i+1
         signal = np.array(self.signal)
         return signal[-duration:, :] if duration else signal[:, :]  # remove label column
 

@@ -14,7 +14,7 @@ class StimConfig(object):
     def __init__(self):
         self.class_list = ['Left', 'Right', 'Rest']
         self.each_class_num = 2
-        self.baseline_duration = 4  # 1 min
+        self.baseline_duration = 20  # 1 min
         self.cue_interval_duration = 3
         self.display_cue_duration = 5
         self.NF_training_duration = 305  # 5 min
@@ -25,8 +25,9 @@ class StimConfig(object):
     def generate_stim_list(self, session_type):
         stim_sequence = list()
         stim_sequence.append((StimType.ExperimentStart, 2))
-        stim_sequence.append((StimType.CrossOnScreen, self.baseline_duration))
-        stim_sequence.append((StimType.EndOfBaseline, 2))
+        # exp_base = 5  # 实验基线
+        # stim_sequence.append((StimType.CrossOnScreen, exp_base))
+        # stim_sequence.append((StimType.EndOfBaseline, 2))
         if session_type in ['Acq', 'Online']:
             stim_list = self.shuffle_stim(self.class_list * self.each_class_num)
             for i in range(len(stim_list)):
@@ -40,6 +41,9 @@ class StimConfig(object):
                     else:
                         stim_sequence.append((StimType.LRNF, self.display_cue_duration - 1))
                 stim_sequence.append((StimType.EndOfTrial, self.cue_interval_duration + random.randint(0, 1)))  # 随机间隔
+        if session_type == 'Baseline':
+            stim_sequence.append((StimType.CrossOnScreen, self.baseline_duration))
+            stim_sequence.append((StimType.EndOfBaseline, 2))
         else:
             stim_sequence.append((StimType.CrossOnScreen, 1))
             if session_type == 'Rest_nonNF':

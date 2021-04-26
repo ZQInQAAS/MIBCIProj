@@ -11,7 +11,7 @@ from Pipeline import Pipeline
 # 主窗体
 class MainWindow(wx.Frame):
     def __init__(self):
-        super(MainWindow, self).__init__(None, title="主界面", size=(290, 420))
+        super(MainWindow, self).__init__(None, title="主界面", size=(290, 480))
         self.SetWindowStyle(wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.init_param()
         self.init_ui()
@@ -38,21 +38,37 @@ class MainWindow(wx.Frame):
         self.newSubjectBtn = wx.Button(panel, label="新建被试", size=(90, 27))
         grid_sizer1.Add(self.newSubjectBtn, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        grid_sizer2 = wx.FlexGridSizer(cols=1, vgap=5, hgap=1)
-        self.acqBtn = wx.Button(panel, label="① 校准(无反馈)", name="Acq", size=(110, 27))
+        grid_sizer2 = wx.FlexGridSizer(cols=2, vgap=5, hgap=1)
+        self.baselineBtn = wx.Button(panel, label="〇 基线", name="Baseline", size=(110, 27))
+        grid_sizer2.Add(self.baselineBtn, 0, wx.ALL, 5)
+        self.acqBtn = wx.Button(panel, label="① 校准", name="Acq", size=(110, 27))
         grid_sizer2.Add(self.acqBtn, 0, wx.ALL, 5)
         self.TrainModelBtn = wx.Button(panel, label="② 校准模型", size=(110, 27))
         grid_sizer2.Add(self.TrainModelBtn, 0, wx.ALL, 5)
-        self.onlineBtn = wx.Button(panel, label="③ 校准(有反馈)", name="Online", size=(110, 27))
+        self.onlineBtn = wx.Button(panel, label="③ 三分类(有反馈)", name="Online", size=(110, 27))
         grid_sizer2.Add(self.onlineBtn, 0, wx.ALL, 5)
+        self.mentalrotationpreBtn = wx.Button(panel, label="心理旋转 pre", name="MRPre", size=(110, 27))
+        grid_sizer2.Add(self.mentalrotationpreBtn, 0, wx.ALL, 5)
+        self.mentalrotationpostBtn = wx.Button(panel, label="心理旋转 post", name="MRPost", size=(110, 27))
+        grid_sizer2.Add(self.mentalrotationpostBtn, 0, wx.ALL, 5)
+
+        sbox = wx.StaticBox(panel, -1, label=u'有反馈')
+        sbsizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
+        grid_sizer3 = wx.FlexGridSizer(cols=1, vgap=5, hgap=1)
         self.alpha_NFBtn = wx.Button(panel, label="④ alpha 有反馈训练", name="RestNF", size=(150, 27))
-        grid_sizer2.Add(self.alpha_NFBtn, 0, wx.ALL, 5)
+        grid_sizer3.Add(self.alpha_NFBtn, 0, wx.ALL, 5)
         self.ERD_NFBtn = wx.Button(panel, label="⑤ ERD 有反馈训练", name="LRNF", size=(150, 27))
-        grid_sizer2.Add(self.ERD_NFBtn, 0, wx.ALL, 5)
+        grid_sizer3.Add(self.ERD_NFBtn, 0, wx.ALL, 5)
+        sbsizer.Add(grid_sizer3, proportion=0, flag=wx.ALL, border=5)
+
+        sbox2 = wx.StaticBox(panel, -1, label=u'无反馈')
+        sbsizer2 = wx.StaticBoxSizer(sbox2, wx.VERTICAL)
+        grid_sizer4 = wx.FlexGridSizer(cols=1, vgap=5, hgap=1)
         self.alpha_nonNFBtn = wx.Button(panel, label="④ alpha 无反馈训练", name="Rest_nonNF", size=(150, 27))
-        grid_sizer2.Add(self.alpha_nonNFBtn, 0, wx.ALL, 5)
+        grid_sizer4.Add(self.alpha_nonNFBtn, 0, wx.ALL, 5)
         self.ERD_nonNFBtn = wx.Button(panel, label="⑤ ERD 无反馈训练", name="LR_nonNF", size=(150, 27))
-        grid_sizer2.Add(self.ERD_nonNFBtn, 0, wx.ALL, 5)
+        grid_sizer4.Add(self.ERD_nonNFBtn, 0, wx.ALL, 5)
+        sbsizer2.Add(grid_sizer4, proportion=0, flag=wx.ALL, border=5)
 
         self.statusBar = self.CreateStatusBar()  # 状态栏
         self.statusBar.SetStatusText(u'……')
@@ -60,6 +76,8 @@ class MainWindow(wx.Frame):
         gridSizer = wx.FlexGridSizer(cols=1, vgap=1, hgap=1)
         gridSizer.Add(grid_sizer1, 0, wx.ALL, 5)
         gridSizer.Add(grid_sizer2, 0, wx.ALL, 5)
+        gridSizer.Add(sbsizer, 0, wx.ALL, 5)
+        gridSizer.Add(sbsizer2, 0, wx.ALL, 5)
 
         panel.SetSizerAndFit(gridSizer)
         panel.Center()
