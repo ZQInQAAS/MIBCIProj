@@ -33,6 +33,9 @@ class Stimulator(PyPublisher, Thread):
                 self.__flag.clear()
                 self.__flag.wait(duration)
 
+    def MRsubmit(self):
+        self.__flag.set()
+
     def get_stimdata(self, data_time, samples_num):
         # return mne event(n_events, 3) First column: event time in sample; Third column: event id
         first_time, last_time = data_time[0], data_time[-1]

@@ -47,10 +47,10 @@ class MainWindow(wx.Frame):
         grid_sizer2.Add(self.TrainModelBtn, 0, wx.ALL, 5)
         self.onlineBtn = wx.Button(panel, label="③ 三分类(有反馈)", name="Online", size=(110, 27))
         grid_sizer2.Add(self.onlineBtn, 0, wx.ALL, 5)
-        self.mentalrotationpreBtn = wx.Button(panel, label="心理旋转 pre", name="MRPre", size=(110, 27))
-        grid_sizer2.Add(self.mentalrotationpreBtn, 0, wx.ALL, 5)
-        self.mentalrotationpostBtn = wx.Button(panel, label="心理旋转 post", name="MRPost", size=(110, 27))
-        grid_sizer2.Add(self.mentalrotationpostBtn, 0, wx.ALL, 5)
+        self.MRPreBtn = wx.Button(panel, label="心理旋转 pre", name="MRPre", size=(110, 27))
+        grid_sizer2.Add(self.MRPreBtn, 0, wx.ALL, 5)
+        self.MRPostBtn = wx.Button(panel, label="心理旋转 post", name="MRPost", size=(110, 27))
+        grid_sizer2.Add(self.MRPostBtn, 0, wx.ALL, 5)
 
         sbox = wx.StaticBox(panel, -1, label=u'有反馈')
         sbsizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
@@ -87,12 +87,15 @@ class MainWindow(wx.Frame):
         # Bind: 响应button事件
         self.newSubjectBtn.Bind(wx.EVT_BUTTON, self.on_new_subject)
         self.subjectNameCtrl.Bind(wx.EVT_CHOICE, self.on_load_param)
+        self.baselineBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.acqBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.onlineBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.alpha_NFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.ERD_NFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.alpha_nonNFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.ERD_nonNFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
+        self.MRPreBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
+        self.MRPostBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.TrainModelBtn.Bind(wx.EVT_BUTTON, self.on_train_model)
 
     def on_new_subject(self, event):
@@ -121,7 +124,6 @@ class MainWindow(wx.Frame):
         #     self.statusBar.SetStatusText(r'未找到训练模型')
         #     return
         # self.subject.set_date_dir()
-
         msg_dialog = wx.MessageDialog(self, "是否开始【" + task_label + "】任务?", task_label+"任务开始", wx.OK | wx.CANCEL | wx.CENTRE)
         if msg_dialog.ShowModal() == wx.ID_OK:
             # self.exo.is_feedback = self.is_feedback

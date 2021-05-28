@@ -1,3 +1,5 @@
+import os
+import sys
 import mne
 import time
 import random
@@ -10,20 +12,16 @@ from scipy.integrate import simps
 from process_tools import PyPublisher
 from NSDataReader import RepeatingTimer
 from BCIConfig import BCIEvent, StimType
-from BCIConfig import ch_types, ch_names, pick_rest_ch
-
-# ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1',
-#             'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6']  # NS random
-# ch_types = ['eeg'] * 26  # NS random
-# pick_rest_ch = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz']  # NS random
+from MIdataset_NF import cal_power_feature
+from BCIConfig import pick_rest_ch, fs
 
 
 class Processor(PyPublisher):
     def __init__(self, main_cfg):
         PyPublisher.__init__(self)
-        self.model_path = main_cfg.subject.get_model_path()
+        # self.model_path = main_cfg.subject.get_model_path()
         self.save_path = main_cfg.subject.get_date_dir()
-        self.epoch_dur = 0.1  # 每多少秒判断一次
+        self.epoch_dur = 0.04  # 每0.04秒判断一次  25Hz
         self.proc_bar_len = main_cfg.stim_cfg.display_cue_duration/self.epoch_dur
         self.online_timer = RepeatingTimer(self.epoch_dur, self.online_run)
         self.init_data()
@@ -31,17 +29,17 @@ class Processor(PyPublisher):
         # self.right_num_one_run = []
         # self.right_num_all = []
         self.result_log = []
-
+        self.beseline_dur = main_cfg.stim_cfg.baseline_duration
 
     def init_data(self):
-        self.beseline_dur = 3  # (s)
         self.predict_state = False
-        self.left_threshold = 0.1
+        self.left_threshold = -0.1
         self.right_threshold = 0.1
         self.rest_threshold = 0.1
         self.wait_list_maxlen = int(5 / self.epoch_dur)  # 5s为一个保持周期
         self.wait_list = []
-        self.rela_left_power_list = []
+        self.power_win_width = 1*fs  # 计算power的窗宽 1s
+        self.rela_left_power_list = []  # rela: (power-base)/base
         self.rela_right_power_list = []
         self.rela_rest_power_list = []
         self.left_threshold_list = []
@@ -51,30 +49,25 @@ class Processor(PyPublisher):
         self.is_left = None
 
     def start(self):
-        selected_ch_pd = pd.read_csv(self.model_path, header=None)
-        self.left_ch = list(selected_ch_pd.iloc[:, 0].values)  #eval(selected_ch_pd.iloc[0].values[0])
-        self.right_ch = list(selected_ch_pd.iloc[:, 1].values)  #eval(selected_ch_pd.iloc[1].values[0])
-        self.fs = self.publish(BCIEvent.readns_header)
+        baseline_model = dict(np.load(self.save_path + r'/model.npz', allow_pickle=True))
+        self.left_ch = baseline_model['left_ch']
+        self.right_ch = baseline_model['right_ch']
+        self.base_alpha_power = baseline_model['base_alpha_power']
+        self.base_leftch_power = baseline_model['base_leftch_power']
+        self.base_rightch_power = baseline_model['base_rightch_power']
+        # self.fs = self.publish(BCIEvent.readns_header)
         self.online_timer.start()
-        self.info = mne.create_info(ch_names, self.fs, ch_types)
-        self.info.set_montage('standard_1005')
 
     def handle_stim(self, stim):
         # print('processor', time.time(), stim)
         if stim in [StimType.Left, StimType.Right, StimType.Rest]:
-            self.label, self.label_idx = stim.name, stim.value
+            self.label = stim
         elif stim == StimType.LRCue:
-            self.label, self.label_idx = 'Right', stim.value  # 右先
+            self.label = StimType.Right  # 右先
         elif stim in [StimType.LRNF, StimType.RestNF]:
             self.wait_list = []
             self.t0 = time.time()
             self.predict_state = True
-        elif stim == StimType.EndOfBaseline:
-            baseline_signal = self.publish(BCIEvent.readns, duration=self.beseline_dur*self.fs)  # 45s signals
-            self.baseline_signal = np.array(baseline_signal)
-            self.base_power_alpha = self.cal_power_feature(self.baseline_signal, pick_rest_ch, fmin=8, fmax=13)
-            self.base_power_ERDleft = self.cal_power_feature(self.baseline_signal, self.left_ch, fmin=8, fmax=30)
-            self.base_power_ERDright = self.cal_power_feature(self.baseline_signal, self.right_ch, fmin=8, fmax=30)
         elif stim == StimType.EndOfTrial:
             self.predict_state = False
             self.get_result_log()
@@ -87,116 +80,96 @@ class Processor(PyPublisher):
 
     def online_run(self):
         if self.predict_state:
-            signal = self.publish(BCIEvent.readns, duration=500)
+            signal = self.publish(BCIEvent.readns, duration=self.power_win_width)
             signal = np.array(signal)  # signal (sample, channal)
             rela_power, is_reached = self.is_reached_threshold(signal)
             # print(time.time(), 'processor')
             try:
-                self.publish(BCIEvent.online_bar, rela_power, is_reached)
+                self.publish(BCIEvent.online_bar, rela_power, self.label, is_reached)
             except RuntimeError:
                 print('Interface has been deleted.')
+                sys.exit(1)
             self.wait_list.append(is_reached)
-            if len(self.wait_list) == self.wait_list_maxlen:
-                if sum(self.wait_list) > len(self.wait_list)*0.65:  # sum(self.wait_list) == len(self.wait_list)
-                    self.publish(BCIEvent.online_face)
+            print(len(self.wait_list))
+            if len(self.wait_list) == self.wait_list_maxlen:  # NF session
+                if sum(self.wait_list) > len(self.wait_list) * 0.7:  # sum(self.wait_list) == len(self.wait_list)
+                    self.publish(BCIEvent.online_face, self.label)
                     self.up_threshold()
-                    if self.label == 'Left':  # 切换另一侧 MI
-                        self.label = 'Right'
-                    elif self.label == 'Right':
-                        self.label = 'Left'
                     self.wait_list = []
-                elif sum(self.wait_list) < len(self.wait_list)*0.35:  # sum(self.wait_list) == 0
+                    if self.label == StimType.Left:  # 切换另一侧 MI
+                        self.label = StimType.Right
+                    elif self.label == StimType.Right:
+                        self.label = StimType.Left
+                elif sum(self.wait_list) < len(self.wait_list)*0.3:  # sum(self.wait_list) == 0
                     self.down_threshold()
                 if self.wait_list != []:
                     self.wait_list.pop(0)
 
-    def avg_power(self):
-        left = np.mean(self.rela_left_power_list[-self.wait_list_maxlen:-1])
-        right = np.mean(self.rela_right_power_list[-self.wait_list_maxlen:-1])
-        return left, right
-
-    def up_threshold(self):
-        if self.label == 'Left':
-            left_power, right_power = self.avg_power()
-            erd = left_power - right_power
-            self.left_threshold, is_up = (self.left_threshold, False) \
-                if self.left_threshold > (erd - self.t_stride) else (erd - self.t_stride, True)
-            if is_up:
-                self.left_threshold_list.append([time.time() - self.t0, self.left_threshold])
-                print('Up threshold. Left_threshold:', self.left_threshold)
-        elif self.label == 'Right':
-            left_power, right_power = self.avg_power()
-            erd = right_power - left_power
-            self.right_threshold, is_up = (self.right_threshold, False) \
-                if self.right_threshold > (erd - self.t_stride) else (erd - self.t_stride, True)
-            if is_up:
-                self.right_threshold_list.append([time.time() - self.t0, self.right_threshold])
-                print('Up threshold. Right_threshold:', self.right_threshold)
-        else:  # Rest
-            rela_rest_power = np.mean(self.rela_rest_power_list[-self.wait_list_maxlen:-1])
-            self.rest_threshold, is_up = (self.rest_threshold, False) \
-                if self.rest_threshold > (rela_rest_power - self.t_stride) else (rela_rest_power - self.t_stride, True)
-            if is_up:
-                self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
-                print('Up threshold, Rest_threshold', self.rest_threshold)
-
-    def down_threshold(self):
-        if self.label == 'Left':
-            left_power, right_power = self.avg_power()
-            erd = right_power - left_power
-            self.left_threshold, is_down = (self.left_threshold, False) \
-                if self.left_threshold < (erd + self.t_stride) else (erd + self.t_stride, True)
-            if is_down:
-                self.left_threshold_list.append([time.time() - self.t0, self.left_threshold])
-                print('Down threshold, Left_threshold', self.left_threshold)
-        elif self.label == 'Right':
-            left_power, right_power = self.avg_power()
-            erd = left_power - right_power
-            self.right_threshold, is_down = (self.right_threshold, False) \
-                if self.right_threshold < (erd + self.t_stride) else (erd + self.t_stride, True)
-            if is_down:
-                self.right_threshold_list.append([time.time() - self.t0, self.right_threshold])
-                print('Down threshold, Right_threshold', self.right_threshold)
-        else:  # Rest
-            r_rest_power = np.mean(self.rela_rest_power_list[-self.wait_list_maxlen:-1])
-            self.rest_threshold, is_down = (self.rest_threshold, False) \
-                if self.rest_threshold < (r_rest_power + self.t_stride) else (r_rest_power + self.t_stride, True)
-            if is_down:
-                self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
-                print('Down threshold, Rest_threshold', self.rest_threshold)
-
     def is_reached_threshold(self, signal):
         # signal (sample, channal)
-        if self.label in ['Left', 'Right']:
-            left_power = self.cal_power_feature(signal, self.left_ch, fmin=8, fmax=30)
-            right_power = self.cal_power_feature(signal, self.right_ch, fmin=8, fmax=30)
-            rela_left_power = (left_power - self.base_power_ERDleft) / self.base_power_ERDleft
-            rela_right_power = (right_power - self.base_power_ERDright) / self.base_power_ERDright
-            self.rela_left_power_list.append(rela_left_power)
-            self.rela_right_power_list.append(rela_right_power)
-            if self.label == 'Left':
-                erd = rela_left_power - rela_right_power
-                return (rela_left_power, rela_right_power), erd > self.left_threshold
-            else:
-                erd = rela_right_power - rela_left_power
-                return (rela_left_power, rela_right_power), erd > self.right_threshold
-        else:  # Rest
-            rest_power = self.cal_power_feature(signal, pick_rest_ch, fmin=8, fmax=13)
-            rela_rest_power = (rest_power - self.base_power_alpha) / self.base_power_alpha
+        if self.label == StimType.Rest:
+            rest_power = cal_power_feature(signal, pick_rest_ch, freq_min=8, freq_max=13, rp=True)
+            rela_rest_power = (rest_power - self.base_alpha_power) / self.base_alpha_power
             self.rela_rest_power_list.append(rela_rest_power)
             return rela_rest_power, rela_rest_power > self.rest_threshold
+        else:  # Left / Right
+            left_power = cal_power_feature(signal, self.left_ch, freq_min=8, freq_max=30)
+            right_power = cal_power_feature(signal, self.right_ch, freq_min=8, freq_max=30)
+            rela_left_power = (left_power - self.base_leftch_power) / self.base_leftch_power
+            rela_right_power = (right_power - self.base_rightch_power) / self.base_rightch_power
+            self.rela_left_power_list.append(rela_left_power)
+            self.rela_right_power_list.append(rela_right_power)
+            erd = rela_right_power - rela_left_power
+            if self.label == StimType.Left:
+                # erd = rela_left_power - rela_right_power
+                return erd, erd < self.left_threshold
+            else:
+                # erd = rela_right_power - rela_left_power
+                return erd, erd > self.right_threshold
 
-    def cal_power_feature(self, signal, ch, fmin=8, fmax=30):
-        raw_mne = mne.io.RawArray(signal.T, self.info, verbose='warning')  # RawArray input (n_channels, n_times)
-        raw_mne.set_eeg_reference(ref_channels='average', projection=True, verbose='warning').apply_proj()  # CAR
-        # raw_mne.filter(8, 30, verbose='warning')  # band pass
-        raw_mne = raw_mne.pick_channels(ch)
-        raw_mne = raw_mne.reorder_channels(ch)
-        psd, freqs = mne.time_frequency.psd_welch(raw_mne, fmin=fmin, fmax=fmax, proj=True, verbose='warning')  # psd (channal, freq)
-        freq_res = freqs[1] - freqs[0]  # 频率分辨率
-        power_ch = simps(psd, dx=freq_res)  # 求积分 power:(channal,)
-        power = np.average(power_ch)  # 通道平均
-        return power
+    def up_threshold(self):
+        if self.label == StimType.Rest:
+            rela_rest_power = np.mean(self.rela_rest_power_list[-self.wait_list_maxlen:-1])  # 正
+            if self.rest_threshold < rela_rest_power - self.t_stride:
+                self.rest_threshold = rela_rest_power - self.t_stride
+                self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
+                print('Up threshold, Rest_threshold', self.rest_threshold)
+        else:
+            left_power = np.mean(self.rela_left_power_list[-self.wait_list_maxlen:-1])
+            right_power = np.mean(self.rela_right_power_list[-self.wait_list_maxlen:-1])
+            erd = right_power - left_power
+            if self.label == StimType.Left:  # 左MI 右-左=负 下调
+                if self.left_threshold > erd + self.t_stride:
+                    self.left_threshold = erd + self.t_stride
+                    self.left_threshold_list.append([time.time() - self.t0, self.left_threshold])
+                    print('Up threshold. Left_threshold:', self.left_threshold)
+            else:
+                if self.right_threshold < erd - self.t_stride:  # 右MI 右-左=正
+                    self.right_threshold = erd - self.t_stride
+                    self.right_threshold_list.append([time.time() - self.t0, self.right_threshold])
+                    print('Up threshold. Right_threshold:', self.right_threshold)
+
+    def down_threshold(self):
+        if self.label == StimType.Rest:
+            rela_rest_power = np.mean(self.rela_rest_power_list[-self.wait_list_maxlen:-1])
+            if self.rest_threshold > (rela_rest_power + self.t_stride):
+                self.rest_threshold = rela_rest_power + self.t_stride
+                self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
+                print('Down threshold, Rest_threshold', self.rest_threshold)
+        else:
+            left_power = np.mean(self.rela_left_power_list[-self.wait_list_maxlen:-1])
+            right_power = np.mean(self.rela_right_power_list[-self.wait_list_maxlen:-1])
+            erd = right_power - left_power
+            if self.label == StimType.Left:  # 左MI 右-左=负 上调
+                if self.left_threshold < erd - self.t_stride:
+                    self.left_threshold = erd - self.t_stride
+                    self.left_threshold_list.append([time.time() - self.t0, self.left_threshold])
+                    print('Down threshold, Left_threshold', self.left_threshold)
+            else:
+                if self.right_threshold > (erd + self.t_stride):
+                    self.right_threshold = erd + self.t_stride
+                    self.right_threshold_list.append([time.time() - self.t0, self.right_threshold])
+                    print('Down threshold, Right_threshold', self.right_threshold)
 
     def get_result_log(self):
         score = sum(self.wait_list) / len(self.wait_list)
@@ -207,7 +180,7 @@ class Processor(PyPublisher):
 
     def save_log(self):
         stime = datetime.now().strftime('%H%M')
-        if self.label == 'Rest' and self.rest_threshold_list != []:
+        if self.label == StimType.Rest and self.rest_threshold_list != []:
             rela_rest_pd = pd.DataFrame(data=self.rela_rest_power_list)
             rest_threshold_pd = pd.DataFrame(data=self.rest_threshold_list)
             rela_rest_pd.to_csv(self.save_path + r'/log/relative_rest_power_' + stime + '.csv', header=False, index=False)
@@ -229,9 +202,9 @@ class Processor(PyPublisher):
         print('Online log saved successfully.')
 
 
-
 if __name__ == '__main__':
-    from MIdataset_new import MIdataset
+    from MIdataset_NF import MIdataset
+    from BCIConfig import ch_names, ch_types
     # dataset_path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean'
     # data_path = r'\S4\S4_20200721\NSsignal_2020_07_21_16_15_11.npz'
     p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\wmm\wmm_20210126\Online_20210126_1525_33.npz'
@@ -255,8 +228,8 @@ if __name__ == '__main__':
     t0 = time.time()
     for i in range(100):
         time.sleep(1)
-        p.base_power_ERDleft = p.cal_power_feature(p.baseline_signal, p.left_ch, fmin=8, fmax=30)
-        p.base_power_ERDright = p.cal_power_feature(p.baseline_signal, p.right_ch, fmin=8, fmax=30)
+        p.base_power_ERDleft = cal_power_feature(p.baseline_signal, p.left_ch, freq_min=8, freq_max=30)
+        p.base_power_ERDright = cal_power_feature(p.baseline_signal, p.right_ch, freq_min=8, freq_max=30)
         is_reached = p.is_reached_threshold(signal1)
         print(time.time()-t0, is_reached)
         t0 = time.time()

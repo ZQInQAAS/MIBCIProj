@@ -111,18 +111,18 @@ class NSDataReaderRandom(object):
         self.repeat_timer.start()
 
     def _read_data(self):
-        data = (10 * np.random.randn(520)).tolist()
-        self.signal += [data[i: i + self.ch_num] for i in range(0, len(data), self.ch_num)]
+        # data = (10 * np.random.randn(520)).tolist()
+        # self.signal += [data[i: i + self.ch_num] for i in range(0, len(data), self.ch_num)]
         self.data_time.append(time())
 
     def stop_data_reader(self):
         print('Close neuroscan random server.')
 
     def get_ns_signal(self, duration=None):
-        # self.signal = self.data[self.i*500:self.i*500+1000, :]
-        # self.i = self.i+1
-        # signal = np.array(self.signal)
-        signal = self.signal
+        self.signal = self.data[self.i*500:self.i*500+3000, :]
+        self.i = self.i+1
+        signal = np.array(self.signal)
+        # signal = self.signal
         return signal[-duration:] if duration else signal  # remove label column
 
 

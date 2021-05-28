@@ -1,10 +1,10 @@
 import numpy as np
 from process_tools import CSP
-# from MIdataset_new import MIdataset
-from MIdataset import MIdataset
+from MIdataset_NF import MIdataset
+# from MIdataset_nonNF import MIdataset
 
 
-def iterative_CSP(data_x, label, ch_names):
+def iterative_CSP_LR(data_x, ch_names):
     # remove the least-discriminative channel
     # imput: unmixing CSP matrix (filter, channels)
     # return channels id, csp weight from small to large order
@@ -16,9 +16,9 @@ def iterative_CSP(data_x, label, ch_names):
     # ch_names = np.delete(ch_names, ch_z)
     # data_x = np.delete(data_x, ch_z, 1)
     for i in range(len(ch_names)):
-        csp.fit(data_x, label)
-        abs_weight = abs(csp.csp_proj_matrix[0, :]) + abs(csp.csp_proj_matrix[-1, :])
-        I = np.argsort(abs_weight)
+        csp.fit(data_x, ['Left', 'Right'])
+        abs_weight = abs(csp.csp_proj_matrix[0, :]) + abs(csp.csp_proj_matrix[-1, :])  # 每个通道first&last filter绝对值的和
+        I = np.argsort(abs_weight)  # 排序
         left_ch_num = len([i for i in ch_names if isside(i, 'left')])
         right_ch_num = len([i for i in ch_names if isside(i, 'right')])
         if (isside(ch_names[I[0]], 'left') and left_ch_num > select_ch_num) or (
@@ -46,7 +46,7 @@ def iterative_CSP(data_x, label, ch_names):
                 else:
                     rightlist.append(ch_names[I][i])
             ch = np.array([leftlist, rightlist]).T
-            print(ch)
+            # print(ch)
             return ch
 
 
@@ -74,7 +74,7 @@ def pipeline(p):
                 kappa_2class = [npz_files[j], ]
                 data = MIdataset(os.path.join(date_file_path, npz_files[j]))
                 data_x, label = data.get_epoch_data(select_label=['left', 'right'])
-                ch = iterative_CSP(data_x, label, ch_names=data.ch_names)
+                ch = iterative_CSP_LR(data_x, label, ch_names=data.ch_names)
                 kappa_2class.extend(ch.tolist())
                 df.loc[k] = kappa_2class
                 k = k + 1
@@ -96,10 +96,10 @@ if __name__ == '__main__':
     # select_ch = ['F3', 'F1', 'F2', 'F4', 'FC5', 'FC3', 'C5', 'C3', 'C1','CP4', 'CP6', 'F5',
     #              'P5', 'P3', 'P1', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CP2']
     # data_x, label = data.get_epoch_data(select_label=['Left', 'Right'], select_ch=select_ch)
-    # ch = iterative_CSP(data_x, label, ch_names=select_ch)
+    # ch = iterative_CSP_LR(data_x, label, ch_names=select_ch)
     # df = pd.DataFrame(data=ch)
     # df.to_csv(r'testcsv.csv', header=False, index=False)
-    df = pd.read_csv(r'D:\Myfiles\MIBCI_NF\process_tools\testcsv.csv', header=None)
-    left = list(df.iloc[:, 0].values)
+    # df = pd.read_csv(r'D:\Myfiles\MIBCI_NF\process_tools\testcsv.csv', header=None)
+    # left = list(df.iloc[:, 0].values)
     # print(left)
-    print(pd)
+    # print(pd)
