@@ -53,8 +53,9 @@ class TrainModelWindow(wx.Dialog):
         ec_baseline_pre = MIdataset(self.save_model_path + r'/ec_baseline_pre.npz')
         ec_baseline_pre.bandpass_filter(1, 100)  # band pass
         paf = ec_baseline_pre.get_IAF()
-        base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, freq_min=paf, freq_max=paf + 2, rp=True)
-        return base_rela_UA_power
+        print('PAF:', paf)
+        base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, freq_min=paf, freq_max=paf + 2, rp=True)
+        return base_UA_power, base_rela_UA_power
 
     def get_individual_LR(self, baseline_eo):
         data = MIdataset(self.train_path_ctrl.GetPath())
@@ -73,11 +74,12 @@ class TrainModelWindow(wx.Dialog):
     def on_train_model(self, event):
         eo_baseline_pre = dict(np.load(self.save_model_path + r'/eo_baseline_pre.npz', allow_pickle=True))
         baseline_eo = eo_baseline_pre['signal']
-        UA_RP = self.get_UA_RP(baseline_eo)
+        UApower, UA_RP = self.get_UA_RP(baseline_eo)
         # left_ch, right_ch, base_leftch_power, base_rightch_power = self.get_individual_LR(baseline_eo)
-        # np.savez(self.save_model_path + r'/model', left_ch=left_ch, right_ch=right_ch, base_alpha_rela_power=UA_RP,
-        #          base_leftch_power=base_leftch_power, base_rightch_power=base_rightch_power)
-        np.savez(self.save_model_path + r'/model',  base_alpha_rela_power=UA_RP)
+        left_ch, right_ch, base_leftch_power, base_rightch_power = None, None, None, None
+        np.savez(self.save_model_path + r'/model', left_ch=left_ch, right_ch=right_ch,
+                 base_alpha_power=UApower, base_alpha_rela_power=UA_RP,
+                 base_leftch_power=base_leftch_power, base_rightch_power=base_rightch_power)
         # df.to_csv(self.save_model_path, header=False, index=False)  # save selected channels
         self.statusLabel.SetLabel('模型训练完成。')
 

@@ -15,7 +15,7 @@ class StimConfig(object):
         self.class_list = ['Left', 'Right', 'Rest', 'StartOfMR']
         self.each_class_num_acq = 2  # 5
         self.each_class_num_online = 3  # 10
-        self.baseline_duration = 5  # 60 (1 min)
+        self.baseline_duration = 60  # 60 (1 min)
         self.cue_interval_duration = 3
         self.display_cue_duration = 5
         self.NF_training_duration = 30  # 180 (3 min)

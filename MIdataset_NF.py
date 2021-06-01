@@ -13,7 +13,7 @@ def cal_power_feature(signal, ch, freq_min=8, freq_max=30, rp=False):
     info.set_montage('standard_1005')
     raw_mne = mne.io.RawArray(signal.T, info, verbose=0)  # RawArray input (n_channels, n_times)
     raw_mne.set_eeg_reference(ref_channels='average', projection=True, verbose=0).apply_proj()  # CAR
-    raw_mne.filter(1, 100, verbose='warning')  # band pass
+    # raw_mne.filter(1, 100, verbose=0)  # band pass
     raw_mne = raw_mne.pick_channels(list(ch))
     raw_mne = raw_mne.reorder_channels(list(ch))
     # psd, freqs = psd_welch(raw_mne, fmin=fmin, fmax=fmax, proj=True, verbose='warning')  # psd (channal, freq)
@@ -28,7 +28,7 @@ def cal_power_feature(signal, ch, freq_min=8, freq_max=30, rp=False):
         power_ch = simps(psd, dx=freq_res)  # 求积分 power:(channal,)
         power_all = np.average(power_ch)  # 通道平均
         power_rp = power / power_all
-        return power_rp
+        return power, power_rp
     else:
         return power
 

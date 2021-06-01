@@ -72,8 +72,6 @@ class Interface(PyPublisher, wx.Frame):
             self.t0 = time.time()
             self.Canvas.AddObject(self.rect0)
             self.Canvas.AddObject(self.rect_t)
-            # if stim == StimType.LRNF:
-                # self.Canvas.AddObject(self.rect1)
         elif stim == StimType.StartOfMR:
             MRpart_idx = 1 if self.session_type == 'MRPre' else 2
             path = r'cue_material/MRT/P' + str(MRpart_idx) + 'Q' + str(self.q_idx) + '.png'
@@ -84,7 +82,7 @@ class Interface(PyPublisher, wx.Frame):
         elif stim == StimType.AnswerOfMR:
             self.is_answer = True
             path = r'cue_material/MRT/MRT_answer.png'
-            self.draw_img(path, (-600, -140))
+            self.draw_img(path, (-600, -100))
             self.MR_t0 = time.time()
         elif stim == StimType.ExperimentStop:
             if self.MR_answer_list:
@@ -123,40 +121,35 @@ class Interface(PyPublisher, wx.Frame):
             if len(self.MR_answer) < 2:
                 self.MR_answer.add(1)
                 path = r'cue_material/MRT/MR_choice.png'
-                self.draw_img(path, (-200, -150))
-            # print("1 key pressed")
+                self.draw_img(path, (-190, -80))
         elif event.GetKeyCode() == wx.WXK_NUMPAD2:
             if len(self.MR_answer) < 2:
                 self.MR_answer.add(2)
                 path = r'cue_material/MRT/MR_choice.png'
-                self.draw_img(path, (50, -150))
-            # print("2 key pressed")
+                self.draw_img(path, (40, -80))
         elif event.GetKeyCode() == wx.WXK_NUMPAD3:
             if len(self.MR_answer) < 2:
                 self.MR_answer.add(3)
                 path = r'cue_material/MRT/MR_choice.png'
-                self.draw_img(path, (300, -150))
-            # print("3 key pressed")
+                self.draw_img(path, (270, -80))
         elif event.GetKeyCode() == wx.WXK_NUMPAD4:
             if len(self.MR_answer) < 2:
                 self.MR_answer.add(4)
                 path = r'cue_material/MRT/MR_choice.png'
-                self.draw_img(path, (550, -150))
-            # print("4 key pressed")
+                self.draw_img(path, (500, -80))
         elif event.GetKeyCode() == wx.WXK_NUMPAD_SUBTRACT:
             self.MR_answer = set()
             path = r'cue_material/MRT/MR_hidden.png'
-            self.draw_img(path, (210, -160))
-            # print("SUBTRACT key pressed")
+            self.draw_img(path, (210, -80))
         elif event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
             self.MR_tlist.append(time.time() - self.MR_t0)
             self.MR_answer_list.append(self.MR_answer)
-            self.MR_answer = set()
+            print("ENTER key pressed. Answer is ", self.MR_answer)
             path = r'cue_material/MRT/MR_submit.png'
-            self.draw_img(path, (0, -350))
+            self.draw_img(path, (0, -200))
+            self.MR_answer = set()
             time.sleep(1)
             self.publish(BCIEvent.MRsubmit)  # MR等提交后trial结束
-            print("ENTER key pressed. Answer is ", self.MR_answer)
         else:
             event.Skip()
 
@@ -168,9 +161,10 @@ class Interface(PyPublisher, wx.Frame):
         print(self.session_type + ' results saved.')
 
     def online_bar(self, score, label, is_reached):
-        # print(time.time(), score, is_reached)
+        print(time.time(), score, is_reached)
         bar_width = 50
         self.bar_len = self.bar_len + score * 10  # TODO 调整速度参数
+        # self.bar_len = score * 10
         # bar_len = score * 150
         color_name = 'orange' if self.bar_len > 0 and label in [StimType.Rest, StimType.Right] or \
                                  (self.bar_len < 0 and label == StimType.Left) else 'slate blue'
