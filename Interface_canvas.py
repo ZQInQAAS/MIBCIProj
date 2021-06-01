@@ -49,6 +49,8 @@ class Interface(PyPublisher, wx.Frame):
             self.draw_img(path, (0, 0))
         elif stim in [StimType.ExperimentStart, StimType.EndOfTrial, StimType.EndOfBaseline]:
             self.clear()
+            if stim == StimType.EndOfTrial and self.session_type in ['MRPre', 'MRPost']:
+                self.add_MR_answer()
         elif stim == StimType.CrossOnScreen:
             path = r'cue_material/cross_white.png'
             self.draw_img(path, (0, 0))
@@ -102,7 +104,6 @@ class Interface(PyPublisher, wx.Frame):
         self.Canvas.Draw()
 
     def clear(self):
-        self.MR_answer = set()
         self.is_answer = False
         self.bar_len = 0
         self.Canvas.ClearAll()
@@ -142,29 +143,33 @@ class Interface(PyPublisher, wx.Frame):
             path = r'cue_material/MRT/MR_hidden.png'
             self.draw_img(path, (210, -80))
         elif event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
-            self.MR_tlist.append(time.time() - self.MR_t0)
-            self.MR_answer_list.append(self.MR_answer)
-            print("ENTER key pressed. Answer is ", self.MR_answer)
+            # self.add_MR_answer()
             path = r'cue_material/MRT/MR_submit.png'
             self.draw_img(path, (0, -200))
-            self.MR_answer = set()
             time.sleep(1)
             self.publish(BCIEvent.MRsubmit)  # MR等提交后trial结束
         else:
             event.Skip()
 
+    def add_MR_answer(self):
+        self.MR_tlist.append(time.time() - self.MR_t0)
+        self.MR_answer_list.append(self.MR_answer)
+        print('Q', self.q_idx, " Answer is ", self.MR_answer)
+        self.MR_answer = set()
+
+
     def saveMR(self):
-        # score = 1  # TODO:MR分数计算
+        # score = 1
         # corrAns = MRcorrAns1 if self.session_type == 'MRPre' else MRcorrAns2
-        np.savez(self.save_path + r'/' + self.session_type + r'_result',
+        np.savez(self.save_path + r'/' + self.session_type + r'_answer',
                  MR_answer=self.MR_answer_list, tlist=self.MR_tlist)
-        print(self.session_type + ' results saved.')
+        print(self.session_type + ' answer saved.')
 
     def online_bar(self, score, label, is_reached):
         print(time.time(), score, is_reached)
         bar_width = 50
-        self.bar_len = self.bar_len + score * 10  # TODO 调整速度参数
-        # self.bar_len = score * 10
+        # self.bar_len = self.bar_len + score * 10  # TODO 调整速度参数
+        self.bar_len = score * 10
         # bar_len = score * 150
         color_name = 'orange' if self.bar_len > 0 and label in [StimType.Rest, StimType.Right] or \
                                  (self.bar_len < 0 and label == StimType.Left) else 'slate blue'
@@ -218,12 +223,15 @@ def cal_MR_score(MR_answer, session_type):
 
 
 if __name__ == '__main__':
-    # app = wx.App()
-    # win = Interface('1')
-    # win.Show()
-    # app.MainLoop()
-    MRPre_result = dict(np.load(r'data_set\S4\S4_20210527\MRPre_result.npz', allow_pickle=True))
-    MR_answer = MRPre_result['MR_answer']
-    tlist = MRPre_result['tlist']
-    s = cal_MR_score(MR_answer, 'MRPre')
-    print(s)
+    # p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPost_result.npz'
+    # MRPre_result = dict(np.load(p, allow_pickle=True))
+    # MR_answer = MRPre_result['MR_answer']
+    # tlist = MRPre_result['tlist']
+    # s = cal_MR_score(MR_answer, 'MRPost')
+    p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPre_20210601_1445_53.npz'
+    data = dict(np.load(p, allow_pickle=True))
+    sig = data['events']
+    p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPost_20210601_1614_41.npz'
+    data = dict(np.load(p, allow_pickle=True))
+    sig2 = data['events']
+    print('1')

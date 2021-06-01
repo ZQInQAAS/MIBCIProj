@@ -24,7 +24,7 @@ class Stimulator(PyPublisher, Thread):
                 stim, duration = self.stim_sequence[i]
                 self.stim_list.append([time(), stim.name])
                 print(time(), stim.name)
-                if stim.name in self.stim_config.class_list:
+                if stim.name in self.stim_config.class_list or stim.name == 'StartOfMR':
                     self.class_list.append([time(), stim.value])
                 self.publish(BCIEvent.change_stim, stim)
                 if stim == StimType.ExperimentStop:

@@ -55,12 +55,18 @@ class Pipeline(object):
         # stim_pram_dict = self.main_cfg.stim_cfg.get_stim_pram()
         if self.main_cfg.session_type == 'Baseline':
             ns_signal = self.cal_baseline(ns_signal, stim_log)
-            path_name = r'baseline_post' if os.path.exists(self.save_data_path + r'/baseline_pre.npz') \
-                else r'baseline_pre'
-            np.savez(self.save_data_path + '/eo_' + path_name, signal=ns_signal[0], events=events, stim_log=stim_log)
-            np.savez(self.save_data_path + '/ec_' + path_name, signal=ns_signal[1], events=events, stim_log=stim_log)
+            path_name = r'/baseline_post' if os.path.exists(self.save_data_path + r'/baseline_pre_eo.npz') \
+                else r'/baseline_pre'
+            np.savez(self.save_data_path + path_name + '_eo', signal=ns_signal[0], events=events, stim_log=stim_log)
+            np.savez(self.save_data_path + path_name + '_ec', signal=ns_signal[1], events=events, stim_log=stim_log)
         else:
-            path = strftime(self.save_data_path + r"/" + self.main_cfg.session_type + "_%Y%m%d_%H%M_%S")
+            if self.main_cfg.session_type in ['MRPre', 'MRPost']:
+                path = self.save_data_path + r"/" + self.main_cfg.session_type
+            elif self.main_cfg.session_type == 'Acq':
+                path_name = r'/Acq_pre' if os.path.exists(self.save_data_path + r'/Acq_pre.npz') else r'/Acq_post'
+                path = self.save_data_path + path_name
+            else:
+                path = strftime(self.save_data_path + r"/" + self.main_cfg.session_type + "_%Y%m%d_%H%M_%S")
             np.savez(path, signal=ns_signal, events=events, stim_log=stim_log)
         # path_config = strftime(self.save_data_path + "//" + 'config_%Y%m%d')
         # np.savez(path_config, event_id_dict=event_id_dict, sample_rate=nsheader_dict['sample_rate'],

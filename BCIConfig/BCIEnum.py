@@ -47,7 +47,7 @@ ch_names = ['Fp1', 'Fpz', 'Fp2', 'AF3', 'AF4', 'F7', 'F5', 'F3', 'F1', 'Fz', 'F2
             'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6',
             'PO5', 'PO3', 'POz', 'PO4', 'PO6', 'O1', 'Oz', 'O2', 'M1', 'M2', 'VEOG', 'HEOG']  # 50eeg+2ref+2eog
 
-pick_rest_ch = ['Fp1', 'Fpz', 'Fp2', 'AF3', 'AF4',
+pick_rest_ch = ['AF3', 'AF4',  # 'Fp1', 'Fpz', 'Fp2',
                 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6',
                 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6']  # 19ch
 

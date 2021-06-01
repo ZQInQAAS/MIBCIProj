@@ -12,22 +12,22 @@ from BCIConfig import StimType
 
 class StimConfig(object):
     def __init__(self):
-        self.class_list = ['Left', 'Right', 'Rest', 'StartOfMR']
-        self.each_class_num_acq = 2  # 5
+        self.class_list = ['Left', 'Right', 'Rest']  # , 'StartOfMR'
+        self.each_class_num_acq = 10  # 5
         self.each_class_num_online = 3  # 10
         self.baseline_duration = 60  # 60 (1 min)
         self.cue_interval_duration = 3
         self.display_cue_duration = 5
-        self.NF_training_duration = 30  # 180 (3 min)
+        self.NF_training_duration = 180  # 180 (3 min)
         self.MRwait_duration = 8
-        self.MRanswer_duration = 16
+        self.MRanswer_duration = 20
         self.move_sound_path = r'../cue_material/move_sound.wav'
         self.relax_sound_path = r'../cue_material/relax_sound.wav'
         self.stop_sound_path = r'../cue_material/stop_sound.wav'
 
     def generate_stim_list(self, session_type):
         stim_sequence = list()
-        stim_sequence.append((StimType.Statement, 2))  # 实验基线 15s
+        stim_sequence.append((StimType.Statement, 15))  # 实验pre 15s
         stim_sequence.append((StimType.ExperimentStart, 2))
         if session_type == 'Baseline':
             stim_sequence.append((StimType.CrossOnScreen, self.baseline_duration))  # 睁眼静息
@@ -49,7 +49,7 @@ class StimConfig(object):
                         stim_sequence.append((StimType.LRNF, self.display_cue_duration - 1))
                 stim_sequence.append((StimType.EndOfTrial, self.cue_interval_duration + random.randint(0, 1)))  # 随机间隔
         elif session_type in ['MRPre', 'MRPost']:
-            MRT_num = 2
+            MRT_num = 10
             for i in range(MRT_num):
                 # stim_sequence.append((StimType.CrossOnScreen, 1))
                 stim_sequence.append((StimType.StartOfMR, self.MRwait_duration))
