@@ -57,7 +57,8 @@ class SubjectInfoConfig(object):
             self.date_dir = self.subject_dir + '/' + self.subject_name + '_' + date
             if not os.path.exists(self.date_dir):
                 self.make_dir(self.date_dir)
-                self.make_dir(self.date_dir + '/log')
+
+            self.make_dir(self.date_dir + '/log')
 
     def get_date_dir(self):
         return self.date_dir

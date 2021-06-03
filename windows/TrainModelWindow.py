@@ -50,12 +50,13 @@ class TrainModelWindow(wx.Dialog):
 
     def get_UA_RP(self, baseline_eo):
         # get peak alpha frequency(paf) from eye_closed baseline
-        ec_baseline_pre = MIdataset(self.save_model_path + r'/ec_baseline_pre.npz')
+        ec_baseline_pre = MIdataset(self.save_model_path + r'/baseline_pre_ec.npz')
         ec_baseline_pre.bandpass_filter(1, 100)  # band pass
-        paf = ec_baseline_pre.get_IAF()
-        print('PAF:', paf)
-        base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, freq_min=paf, freq_max=paf + 2, rp=True)
-        return base_UA_power, base_rela_UA_power
+        PAF, AlphaBand = ec_baseline_pre.get_IAF(fmin=7, fmax=14)
+        print('PAF:', PAF)
+        base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, freq_min=AlphaBand[0],
+                                                              freq_max=AlphaBand[1], rp=True)
+        return PAF, AlphaBand, base_UA_power, base_rela_UA_power
 
     def get_individual_LR(self, baseline_eo):
         data = MIdataset(self.train_path_ctrl.GetPath())
@@ -72,12 +73,12 @@ class TrainModelWindow(wx.Dialog):
         return left_ch, right_ch, base_leftch_power, base_rightch_power
 
     def on_train_model(self, event):
-        eo_baseline_pre = dict(np.load(self.save_model_path + r'/eo_baseline_pre.npz', allow_pickle=True))
+        eo_baseline_pre = dict(np.load(self.save_model_path + r'/baseline_pre_eo.npz', allow_pickle=True))
         baseline_eo = eo_baseline_pre['signal']
-        UApower, UA_RP = self.get_UA_RP(baseline_eo)
+        PAF, alpha_band, UApower, UA_RP = self.get_UA_RP(baseline_eo)
         # left_ch, right_ch, base_leftch_power, base_rightch_power = self.get_individual_LR(baseline_eo)
         left_ch, right_ch, base_leftch_power, base_rightch_power = None, None, None, None
-        np.savez(self.save_model_path + r'/model', left_ch=left_ch, right_ch=right_ch,
+        np.savez(self.save_model_path + r'/model', left_ch=left_ch, right_ch=right_ch, PAF=PAF, alpha_band=alpha_band,
                  base_alpha_power=UApower, base_alpha_rela_power=UA_RP,
                  base_leftch_power=base_leftch_power, base_rightch_power=base_rightch_power)
         # df.to_csv(self.save_model_path, header=False, index=False)  # save selected channels

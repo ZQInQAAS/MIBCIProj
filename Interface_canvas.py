@@ -16,11 +16,13 @@ class Interface(PyPublisher, wx.Frame):
         super(PyPublisher, self).__init__(None, title="MIBCI", size=(1200, 960))
 
         # self.main_cfg = main_cfg
+        self.is_pre = main_cfg.is_pre
         self.session_type = main_cfg.session_type
         self.save_path = main_cfg.subject.get_date_dir()
         self.NF_time_len = main_cfg.stim_cfg.NF_training_duration
         self.init_data()
         self.Bind(wx.EVT_CHAR_HOOK, self.onKey)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
         self.rect0 = FloatCanvas.Rectangle((0, 0), (0, 0), FillColor='Red')
         # self.rect1 = FloatCanvas.Rectangle((0, 0), (0, 0), FillColor='Red')
         self.rect_t = FloatCanvas.Rectangle((0, 0), (0, 0), FillColor='Red')  # 进度条
@@ -49,7 +51,7 @@ class Interface(PyPublisher, wx.Frame):
             self.draw_img(path, (0, 0))
         elif stim in [StimType.ExperimentStart, StimType.EndOfTrial, StimType.EndOfBaseline]:
             self.clear()
-            if stim == StimType.EndOfTrial and self.session_type in ['MRPre', 'MRPost']:
+            if stim == StimType.EndOfTrial and self.session_type == 'MRT':
                 self.add_MR_answer()
         elif stim == StimType.CrossOnScreen:
             path = r'cue_material/cross_white.png'
@@ -75,7 +77,7 @@ class Interface(PyPublisher, wx.Frame):
             self.Canvas.AddObject(self.rect0)
             self.Canvas.AddObject(self.rect_t)
         elif stim == StimType.StartOfMR:
-            MRpart_idx = 1 if self.session_type == 'MRPre' else 2
+            MRpart_idx = 1 if self.is_pre else 2
             path = r'cue_material/MRT/P' + str(MRpart_idx) + 'Q' + str(self.q_idx) + '.png'
             self.q_idx = self.q_idx + 1
             self.draw_img(path, (0, 100), height=300)
@@ -114,6 +116,7 @@ class Interface(PyPublisher, wx.Frame):
     def onClose(self, event):
         self.publish(BCIEvent.cue_disconnect)
         print('Interface closed.')
+        self.Destroy()
 
     def onKey(self, event):
         if not self.is_answer:
@@ -154,14 +157,13 @@ class Interface(PyPublisher, wx.Frame):
     def add_MR_answer(self):
         self.MR_tlist.append(time.time() - self.MR_t0)
         self.MR_answer_list.append(self.MR_answer)
-        print('Q', self.q_idx, " Answer is ", self.MR_answer)
+        print('Q', self.q_idx-1, " Answer is ", self.MR_answer)
         self.MR_answer = set()
 
 
     def saveMR(self):
-        # score = 1
-        # corrAns = MRcorrAns1 if self.session_type == 'MRPre' else MRcorrAns2
-        np.savez(self.save_path + r'/' + self.session_type + r'_answer',
+        is_pre = '_pre' if self.is_pre else '_post'
+        np.savez(self.save_path + r'/' + self.session_type + is_pre + r'_answer',
                  MR_answer=self.MR_answer_list, tlist=self.MR_tlist)
         print(self.session_type + ' answer saved.')
 
@@ -169,7 +171,7 @@ class Interface(PyPublisher, wx.Frame):
         print(time.time(), score, is_reached)
         bar_width = 50
         # self.bar_len = self.bar_len + score * 10  # TODO 调整速度参数
-        self.bar_len = score * 10
+        self.bar_len = score * 150
         # bar_len = score * 150
         color_name = 'orange' if self.bar_len > 0 and label in [StimType.Rest, StimType.Right] or \
                                  (self.bar_len < 0 and label == StimType.Left) else 'slate blue'
@@ -213,9 +215,9 @@ class Interface(PyPublisher, wx.Frame):
         self.face_num = self.face_num + 1
 
 
-def cal_MR_score(MR_answer, session_type):
+def cal_MR_score(MR_answer, is_pre):
     score = 0
-    corrAns = MRcorrAns1 if session_type == 'MRPre' else MRcorrAns2
+    corrAns = MRcorrAns1 if is_pre else MRcorrAns2
     for i in range(len(corrAns)):
         if corrAns[i] == tuple(MR_answer[i]):
             score = score + 1
@@ -223,15 +225,15 @@ def cal_MR_score(MR_answer, session_type):
 
 
 if __name__ == '__main__':
-    # p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPost_result.npz'
-    # MRPre_result = dict(np.load(p, allow_pickle=True))
-    # MR_answer = MRPre_result['MR_answer']
-    # tlist = MRPre_result['tlist']
-    # s = cal_MR_score(MR_answer, 'MRPost')
-    p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPre_20210601_1445_53.npz'
-    data = dict(np.load(p, allow_pickle=True))
-    sig = data['events']
-    p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPost_20210601_1614_41.npz'
-    data = dict(np.load(p, allow_pickle=True))
-    sig2 = data['events']
+    p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210603\MRPre_answer.npz'
+    MRPre_result = dict(np.load(p, allow_pickle=True))
+    MR_answer = MRPre_result['MR_answer']
+    tlist = MRPre_result['tlist']
+    s = cal_MR_score(MR_answer, 'MRPost')
+    # p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPre_20210601_1445_53.npz'
+    # data = dict(np.load(p, allow_pickle=True))
+    # sig = data['events']
+    # p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPost_20210601_1614_41.npz'
+    # data = dict(np.load(p, allow_pickle=True))
+    # sig2 = data['events']
     print('1')

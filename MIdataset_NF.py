@@ -97,7 +97,7 @@ class MIdataset(object):
         if raw is None:
             raw = self.raw_mne
         iaf = savgol_iaf(raw, picks=ch, fmin=fmin, fmax=fmax, resolution=res, ax=False)
-        return iaf.PeakAlphaFrequency
+        return iaf.PeakAlphaFrequency, iaf.AlphaBand
 
     def plot_raw_psd(self, fmin=1, fmax=40):
         self.raw_mne.pick_types(eeg=True, meg=False, stim=False, eog=True)

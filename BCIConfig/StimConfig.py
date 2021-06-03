@@ -27,7 +27,7 @@ class StimConfig(object):
 
     def generate_stim_list(self, session_type):
         stim_sequence = list()
-        stim_sequence.append((StimType.Statement, 15))  # 实验pre 15s
+        stim_sequence.append((StimType.Statement, 10))  # 实验pre 10s
         stim_sequence.append((StimType.ExperimentStart, 2))
         if session_type == 'Baseline':
             stim_sequence.append((StimType.CrossOnScreen, self.baseline_duration))  # 睁眼静息
@@ -48,7 +48,7 @@ class StimConfig(object):
                     else:
                         stim_sequence.append((StimType.LRNF, self.display_cue_duration - 1))
                 stim_sequence.append((StimType.EndOfTrial, self.cue_interval_duration + random.randint(0, 1)))  # 随机间隔
-        elif session_type in ['MRPre', 'MRPost']:
+        elif session_type == 'MRT':
             MRT_num = 10
             for i in range(MRT_num):
                 # stim_sequence.append((StimType.CrossOnScreen, 1))

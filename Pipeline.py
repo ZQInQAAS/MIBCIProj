@@ -28,6 +28,7 @@ class Pipeline(object):
         self.stim.subscribe(BCIEvent.stim_stop, self.ns_reader.stop_data_reader)
         self.interface.subscribe(BCIEvent.MRsubmit, self.stim.MRsubmit)
         self.interface.subscribe(BCIEvent.cue_disconnect, self.stim.stop_stim)
+        # self.interface.subscribe(BCIEvent.cue_disconnect, self.ns_reader.stop_data_reader)
         if self.is_feedback:
             self.processor = Processor(self.main_cfg)
             self.processor.subscribe(BCIEvent.readns_header, self.ns_reader.get_sample_rate)
@@ -36,7 +37,7 @@ class Pipeline(object):
             self.processor.subscribe(BCIEvent.online_bar, self.interface.online_bar)
             self.processor.subscribe(BCIEvent.online_face, self.interface.online_face)
             # self.processor.subscribe(BCIEvent.online_ctrl, main_cfg.exo.online_feedback)
-            # self.stim.subscribe(BCIEvent.stim_stop, self.processor.save_log)
+            self.stim.subscribe(BCIEvent.stim_stop, self.processor.stop)
 
     def start(self):
         self.ns_reader.start()
@@ -53,19 +54,18 @@ class Pipeline(object):
         events, stim_log = self.stim.get_stimdata(self.ns_reader.data_time, ns_signal.shape[0])
         event_id_dict = self.main_cfg.stim_cfg.get_class_dict()
         # stim_pram_dict = self.main_cfg.stim_cfg.get_stim_pram()
+        is_pre = '_pre' if self.main_cfg.is_pre else '_post'
         if self.main_cfg.session_type == 'Baseline':
             ns_signal = self.cal_baseline(ns_signal, stim_log)
-            path_name = r'/baseline_post' if os.path.exists(self.save_data_path + r'/baseline_pre_eo.npz') \
-                else r'/baseline_pre'
-            np.savez(self.save_data_path + path_name + '_eo', signal=ns_signal[0], events=events, stim_log=stim_log)
-            np.savez(self.save_data_path + path_name + '_ec', signal=ns_signal[1], events=events, stim_log=stim_log)
+            path_name = self.save_data_path + r'/' + self.main_cfg.session_type + is_pre
+            np.savez(path_name + '_eo', signal=ns_signal[0], events=events, stim_log=stim_log)
+            np.savez(path_name + '_ec', signal=ns_signal[1], events=events, stim_log=stim_log)
         else:
-            if self.main_cfg.session_type in ['MRPre', 'MRPost']:
-                path = self.save_data_path + r"/" + self.main_cfg.session_type
+            if self.main_cfg.session_type == 'MRT':
+                path = self.save_data_path + r"/" + self.main_cfg.session_type + is_pre
             elif self.main_cfg.session_type == 'Acq':
-                path_name = r'/Acq_pre' if os.path.exists(self.save_data_path + r'/Acq_pre.npz') else r'/Acq_post'
-                path = self.save_data_path + path_name
-            else:
+                path = strftime(self.save_data_path + r'/' + self.main_cfg.session_type + is_pre + "_%Y%m%d_%H%M_%S")
+            else:  # NF
                 path = strftime(self.save_data_path + r"/" + self.main_cfg.session_type + "_%Y%m%d_%H%M_%S")
             np.savez(path, signal=ns_signal, events=events, stim_log=stim_log)
         # path_config = strftime(self.save_data_path + "//" + 'config_%Y%m%d')

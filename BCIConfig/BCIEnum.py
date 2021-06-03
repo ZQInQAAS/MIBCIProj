@@ -40,12 +40,29 @@ event_id = {'Left': 1,
             'Rest': 3}
 fs = 500
 
-ch_types = ['eeg'] * 52 + ['eog'] * 2
+# ch_types = ['eeg'] * 52 + ['eog'] * 2
 
+# ch_names = ['Fp1', 'Fpz', 'Fp2', 'AF3', 'AF4', 'F7', 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6', 'F8',
+#             'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6',
+#             'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6',
+#             'PO5', 'PO3', 'POz', 'PO4', 'PO6', 'O1', 'Oz', 'O2', 'M1', 'M2', 'VEOG', 'HEOG']  # 50eeg+2ref+2eog
+ch_types = ['eeg'] * 62 + ['eog'] * 2
 ch_names = ['Fp1', 'Fpz', 'Fp2', 'AF3', 'AF4', 'F7', 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6', 'F8',
-            'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6',
-            'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6',
-            'PO5', 'PO3', 'POz', 'PO4', 'PO6', 'O1', 'Oz', 'O2', 'M1', 'M2', 'VEOG', 'HEOG']  # 50eeg+2ref+2eog
+            'FT7', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'FT8',
+            'T7', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'T8',
+            'M1', 'TP7', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'TP8', 'M2',
+            'P7', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6', 'P8',
+            'PO7', 'PO5', 'PO3', 'POz', 'PO4', 'PO6', 'PO8',
+            'O1', 'Oz', 'O2', 'HEOG', 'VEOG']  # 60eeg+2ref+2eog
+
+montage1020 = ['Fp1', 'Fpz', 'Fp2', 'AF9', 'AF7', 'AF5', 'AF3', 'AF1', 'AFz', 'AF2', 'AF4', 'AF6', 'AF8', 'AF10',
+               'F9', 'F7', 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6', 'F8', 'F10',
+               'FT9', 'FT7', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6', 'FT8', 'FT10',
+               'T9', 'T7', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'T8', 'T10',
+               'TP9', 'TP7', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'TP8', 'TP10',
+               'P9', 'P7', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6', 'P8', 'P10',
+               'PO9', 'PO7', 'PO5', 'PO3', 'PO1', 'POz', 'PO2', 'PO4', 'PO6', 'PO8', 'PO10',
+               'O1', 'Oz', 'O2', 'O9', 'Iz', 'O10', 'T3', 'T5', 'T4', 'T6', 'M1', 'M2', 'A1', 'A2']  # 94ch
 
 pick_rest_ch = ['AF3', 'AF4',  # 'Fp1', 'Fpz', 'Fp2',
                 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6',
@@ -74,3 +91,5 @@ MRcorrAns1 = [(1, 3), (1, 4), (2, 4), (2, 3), (2, 3),
               (2, 4), (2, 4), (2, 4), (1, 3), (2, 4)]  # modified version by Moè, A. (2021)
 MRcorrAns2 = [(1, 3), (1, 4), (2, 4), (1, 4), (2, 4),
               (1, 4), (2, 3), (2, 3), (1, 4), (2, 3)]
+
+

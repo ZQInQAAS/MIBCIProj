@@ -35,7 +35,7 @@ class Processor(PyPublisher):
 
     def init_data(self):
         self.predict_state = False
-        self.is_reached_buffer_len = int(4 / self.epoch_dur)  # 4s为一个保持周期  100个
+        self.is_reached_buffer_len = int(2 / self.epoch_dur)  # 4s一周期(100个epoch)  2s 50个
         self.is_reached_buffer = []
         self.power_buffer_len = 3  #
         self.power_buffer = []
@@ -46,21 +46,27 @@ class Processor(PyPublisher):
         self.left_threshold_list = []
         self.right_threshold_list = []
         self.rest_threshold_list = []
-        self.left_threshold = -0.1
-        self.right_threshold = 0.1
-        self.rest_threshold = 0.1
-        self.t_stride = 0.02  # 阈值调整步长
+        self.left_threshold = -0.05
+        self.right_threshold = 0.05
+        self.rest_threshold = 0.05
+        self.t_stride = 0.005  # 阈值调整步长
         self.is_left = None
 
     def start(self):
         baseline_model = dict(np.load(self.save_path + r'/model.npz', allow_pickle=True))
         self.left_ch = baseline_model['left_ch']
         self.right_ch = baseline_model['right_ch']
+        self.IAF_band = baseline_model['alpha_band']
         self.base_alpha_power = baseline_model['base_alpha_rela_power']
         self.base_leftch_power = baseline_model['base_leftch_power']
         self.base_rightch_power = baseline_model['base_rightch_power']
         # self.fs = self.publish(BCIEvent.readns_header)
         self.online_timer.start()
+
+    def stop(self):
+        self.online_timer.cancel()
+        self.save_log()
+        print('stop processor')
 
     def handle_stim(self, stim):
         # print('processor', time.time(), stim)
@@ -76,9 +82,7 @@ class Processor(PyPublisher):
             self.predict_state = False
             self.get_result_log()
         elif stim == StimType.ExperimentStop:
-            self.online_timer.cancel()
-            self.save_log()
-            print('stop processor')
+            self.stop()
         else:
             return
 
@@ -92,7 +96,8 @@ class Processor(PyPublisher):
                 self.power_buffer.pop(0)
             # print(time.time(), 'processor')
             try:
-                avg_power = np.mean(self.power_buffer)
+                # avg_power = np.mean(self.power_buffer)
+                avg_power = rela_power
                 self.publish(BCIEvent.online_bar, avg_power, self.label, is_reached)
             except RuntimeError:
                 print('Interface has been deleted.')
@@ -116,8 +121,9 @@ class Processor(PyPublisher):
     def is_reached_threshold(self, signal):
         # signal (sample, channal)
         if self.label == StimType.Rest:
-            _, rest_power = cal_power_feature(signal, pick_rest_ch, freq_min=8, freq_max=13, rp=True)
-            rela_rest_power = (rest_power - self.base_alpha_power) / self.base_alpha_power
+            rest_power, rest_power_rp = cal_power_feature(signal, pick_rest_ch, freq_min=self.IAF_band[0],
+                                                          freq_max=self.IAF_band[1], rp=True)
+            rela_rest_power = (rest_power_rp - self.base_alpha_power) / self.base_alpha_power
             self.rela_rest_power_list.append(rela_rest_power)
             return rela_rest_power, rela_rest_power > self.rest_threshold
         else:  # Left / Right

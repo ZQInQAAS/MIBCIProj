@@ -40,18 +40,22 @@ class MainWindow(wx.Frame):
 
 
         grid_sizer2 = wx.FlexGridSizer(cols=2, vgap=5, hgap=1)
-        self.MRPreBtn = wx.Button(panel, label="心理旋转 pre", name="MRPre", size=(110, 27))
-        grid_sizer2.Add(self.MRPreBtn, 0, wx.ALL, 5)
+
+        self.is_pre_ctrl = wx.Choice(panel, name="评估阶段", choices=['pre', 'post'], size=(110, 27))
+        self.is_pre_ctrl.SetSelection(0)
+        grid_sizer2.Add(self.is_pre_ctrl, 0, wx.ALL, 5)
+        self.MRTBtn = wx.Button(panel, label="心理旋转", name="MRT", size=(110, 27))
+        grid_sizer2.Add(self.MRTBtn, 0, wx.ALL, 5)
         self.baselineBtn = wx.Button(panel, label="〇 基线", name="Baseline", size=(110, 27))
         grid_sizer2.Add(self.baselineBtn, 0, wx.ALL, 5)
-        self.acqBtn = wx.Button(panel, label="① 校准", name="Acq", size=(110, 27))
+        self.acqBtn = wx.Button(panel, label="① 离线MI", name="Acq", size=(110, 27))
         grid_sizer2.Add(self.acqBtn, 0, wx.ALL, 5)
         self.TrainModelBtn = wx.Button(panel, label="② 生成模型", size=(110, 27))
         grid_sizer2.Add(self.TrainModelBtn, 0, wx.ALL, 5)
         # self.onlineBtn = wx.Button(panel, label="③ 三分类(有反馈)", name="Online", size=(110, 27))
         # grid_sizer2.Add(self.onlineBtn, 0, wx.ALL, 5)
-        self.MRPostBtn = wx.Button(panel, label="心理旋转 post", name="MRPost", size=(110, 27))
-        grid_sizer2.Add(self.MRPostBtn, 0, wx.ALL, 5)
+        # self.MRPostBtn = wx.Button(panel, label="心理旋转 post", name="MRPost", size=(110, 27))
+        # grid_sizer2.Add(self.MRPostBtn, 0, wx.ALL, 5)
 
         sbox = wx.StaticBox(panel, -1, label=u'有反馈')
         sbsizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
@@ -62,14 +66,14 @@ class MainWindow(wx.Frame):
         # grid_sizer3.Add(self.ERD_NFBtn, 0, wx.ALL, 5)
         sbsizer.Add(grid_sizer3, proportion=0, flag=wx.ALL, border=5)
 
-        sbox2 = wx.StaticBox(panel, -1, label=u'无反馈')
-        sbsizer2 = wx.StaticBoxSizer(sbox2, wx.VERTICAL)
-        grid_sizer4 = wx.FlexGridSizer(cols=1, vgap=5, hgap=1)
-        self.alpha_nonNFBtn = wx.Button(panel, label="④ alpha 无反馈训练", name="Rest_nonNF", size=(150, 27))
-        grid_sizer4.Add(self.alpha_nonNFBtn, 0, wx.ALL, 5)
-        # self.ERD_nonNFBtn = wx.Button(panel, label="⑤ ERD 无反馈训练", name="LR_nonNF", size=(150, 27))
-        # grid_sizer4.Add(self.ERD_nonNFBtn, 0, wx.ALL, 5)
-        sbsizer2.Add(grid_sizer4, proportion=0, flag=wx.ALL, border=5)
+        # sbox2 = wx.StaticBox(panel, -1, label=u'无反馈')
+        # sbsizer2 = wx.StaticBoxSizer(sbox2, wx.VERTICAL)
+        # grid_sizer4 = wx.FlexGridSizer(cols=1, vgap=5, hgap=1)
+        # self.alpha_nonNFBtn = wx.Button(panel, label="④ alpha 无反馈训练", name="Rest_nonNF", size=(150, 27))
+        # grid_sizer4.Add(self.alpha_nonNFBtn, 0, wx.ALL, 5)
+        # # self.ERD_nonNFBtn = wx.Button(panel, label="⑤ ERD 无反馈训练", name="LR_nonNF", size=(150, 27))
+        # # grid_sizer4.Add(self.ERD_nonNFBtn, 0, wx.ALL, 5)
+        # sbsizer2.Add(grid_sizer4, proportion=0, flag=wx.ALL, border=5)
 
         self.statusBar = self.CreateStatusBar()  # 状态栏
         self.statusBar.SetStatusText(u'……')
@@ -78,7 +82,7 @@ class MainWindow(wx.Frame):
         gridSizer.Add(grid_sizer1, 0, wx.ALL, 5)
         gridSizer.Add(grid_sizer2, 0, wx.ALL, 5)
         gridSizer.Add(sbsizer, 0, wx.ALL, 5)
-        gridSizer.Add(sbsizer2, 0, wx.ALL, 5)
+        # gridSizer.Add(sbsizer2, 0, wx.ALL, 5)
 
         panel.SetSizerAndFit(gridSizer)
         panel.Center()
@@ -91,12 +95,12 @@ class MainWindow(wx.Frame):
         self.baselineBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.acqBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.alpha_NFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
-        self.alpha_nonNFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
+        # self.alpha_nonNFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         # self.onlineBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         # self.ERD_NFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         # self.ERD_nonNFBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
-        self.MRPreBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
-        self.MRPostBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
+        self.MRTBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
+        # self.MRPostBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.TrainModelBtn.Bind(wx.EVT_BUTTON, self.on_train_model)
 
     def on_new_subject(self, event):
@@ -109,6 +113,7 @@ class MainWindow(wx.Frame):
             self.subjectNameCtrl.SetItems(self.subjectNameList)
             self.subjectNameCtrl.SetStringSelection(new_subject_name)
         new_subject_dlg.Destroy()
+        self.subject.set_date_dir()
 
     def on_load_param(self, event):
         subject_name = self.subjectNameCtrl.GetStringSelection()
@@ -121,6 +126,7 @@ class MainWindow(wx.Frame):
             return
         self.session_type = event.GetEventObject().GetName()
         task_label = event.GetEventObject().GetLabel()
+        self.is_pre = True if self.is_pre_ctrl.GetStringSelection() == 'pre' else False
         # if self.session_type == 'Online' and not os.path.exists(self.subject.get_model_path()):
         #     self.statusBar.SetStatusText(r'未找到训练模型')
         #     return
