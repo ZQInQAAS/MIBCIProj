@@ -1,11 +1,11 @@
 import numpy as np
 from sklearn import svm
-from process_tools import CSP, bandpass_filter
+from process_tools import csp_filter, bandpass_filter
 
 
 class Classification(object):
     def __init__(self):
-        self.csp = CSP(m=3)
+        self.csp = csp_filter(m=3)
         self.filter_low = 8
         self.filter_high = 30
         self.svm_clf = svm.SVC(C=0.8, kernel='rbf')

@@ -3,7 +3,7 @@ import numpy as np
 import scipy.linalg as la
 
 
-class CSP(object):
+class csp_filter(object):
     def __init__(self, m=3):
         self.m = m
         self.csp_proj_matrix = None

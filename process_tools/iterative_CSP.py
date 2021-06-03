@@ -1,5 +1,5 @@
 import numpy as np
-from process_tools import CSP
+from process_tools import csp_filter
 from MIdataset_NF import MIdataset
 # from MIdataset_nonNF import MIdataset
 
@@ -8,7 +8,7 @@ def iterative_CSP_LR(data_x, ch_names):
     # remove the least-discriminative channel
     # imput: unmixing CSP matrix (filter, channels)
     # return channels id, csp weight from small to large order
-    csp = CSP(m=1)
+    csp = csp_filter(m=1)
     select_ch_num = 5
     ch_names = np.array(ch_names)
     # ch_name = ch_names

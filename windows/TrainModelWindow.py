@@ -83,13 +83,9 @@ class TrainModelWindow(wx.Dialog):
         # df.to_csv(self.save_model_path, header=False, index=False)  # save selected channels
         self.statusLabel.SetLabel('模型训练完成。')
 
-def offline(path):
-    MIdataset(path)
-
 
 if __name__ == '__main__':
     # model = dict(np.load(r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210528\model.npz'))
     # base_alpha_rela_power = model['base_alpha_rela_power']
     pa = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\Acq_20210601_1502_08.npz'
-    offline(pa)
     print('1')

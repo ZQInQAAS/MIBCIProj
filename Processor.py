@@ -5,10 +5,12 @@ import time
 import random
 import numpy as np
 import pandas as pd
+
 from queue import Queue
 from time import strftime
 from datetime import datetime
 from scipy.integrate import simps
+
 from process_tools import PyPublisher
 from NSDataReader import RepeatingTimer
 from BCIConfig import BCIEvent, StimType
@@ -207,8 +209,7 @@ class Processor(PyPublisher):
             print('no log saved.')
         print('Online log saved successfully.')
 
-
-if __name__ == '__main__':
+def testmain():
     from MIdataset_NF import MIdataset
     from BCIConfig import ch_names, ch_types
     # dataset_path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean'
@@ -241,3 +242,6 @@ if __name__ == '__main__':
         t0 = time.time()
     # p.base_power_ERDright = p.cal_power_feature(p.baseline_signal, p.right_ch, fmin=8, fmax=30)
     # is_reached = p.is_reached_threshold(signal1)
+
+if __name__ == '__main__':
+    print('1')
