@@ -13,7 +13,8 @@ from BCIConfig import MRcorrAns1, MRcorrAns2
 class Interface(PyPublisher, wx.Frame):
     def __init__(self, main_cfg):
         super().__init__()
-        super(PyPublisher, self).__init__(None, title="MIBCI", size=(1200, 960))
+        w, h = 1920, 1080
+        super(PyPublisher, self).__init__(None, title="MIBCI", size=(w, h))
 
         # self.main_cfg = main_cfg
         self.is_pre = main_cfg.is_pre
@@ -26,8 +27,9 @@ class Interface(PyPublisher, wx.Frame):
         self.rect0 = FloatCanvas.Rectangle((0, 0), (0, 0), FillColor='Red')
         # self.rect1 = FloatCanvas.Rectangle((0, 0), (0, 0), FillColor='Red')
         self.rect_t = FloatCanvas.Rectangle((0, 0), (0, 0), FillColor='Red')  # 进度条
-        self.Canvas = FloatCanvas.FloatCanvas(self, -1, size=(1200, 960), ProjectionFun=None,
+        self.Canvas = FloatCanvas.FloatCanvas(self, -1, size=(w, h), ProjectionFun=None,
                                               Debug=0, BackgroundColor="Black", )
+        self.SetSize(x=1920, y=0, width=w, height=h)
 
     def init_data(self):
         self.stim = None

@@ -38,9 +38,7 @@ class MainWindow(wx.Frame):
         self.newSubjectBtn = wx.Button(panel, label="新建被试", size=(90, 27))
         grid_sizer1.Add(self.newSubjectBtn, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-
         grid_sizer2 = wx.FlexGridSizer(cols=2, vgap=5, hgap=1)
-
         self.is_pre_ctrl = wx.Choice(panel, name="评估阶段", choices=['pre', 'post'], size=(110, 27))
         self.is_pre_ctrl.SetSelection(0)
         grid_sizer2.Add(self.is_pre_ctrl, 0, wx.ALL, 5)
@@ -90,6 +88,7 @@ class MainWindow(wx.Frame):
 
     def bind_event(self):
         # Bind: 响应button事件
+        self.Bind(wx.EVT_CLOSE, self.onClose)
         self.newSubjectBtn.Bind(wx.EVT_BUTTON, self.on_new_subject)
         self.subjectNameCtrl.Bind(wx.EVT_CHOICE, self.on_load_param)
         self.baselineBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
@@ -102,6 +101,10 @@ class MainWindow(wx.Frame):
         self.MRTBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         # self.MRPostBtn.Bind(wx.EVT_BUTTON, self.on_graz_start)
         self.TrainModelBtn.Bind(wx.EVT_BUTTON, self.on_train_model)
+
+    def onClose(self, event):
+        self.pipline.ns_reader.stop_data_reader()
+        self.Destroy()
 
     def on_new_subject(self, event):
         # 新建被试
@@ -134,8 +137,8 @@ class MainWindow(wx.Frame):
         msg_dialog = wx.MessageDialog(self, "是否开始【" + task_label + "】任务?", task_label+"任务开始", wx.OK | wx.CANCEL | wx.CENTRE)
         if msg_dialog.ShowModal() == wx.ID_OK:
             # self.exo.is_feedback = self.is_feedback
-            pipline = Pipeline(self)
-            pipline.start()
+            self.pipline = Pipeline(self)
+            self.pipline.start()
         else:
             return
 

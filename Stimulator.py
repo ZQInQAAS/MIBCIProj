@@ -64,4 +64,4 @@ class Stimulator(PyPublisher, Thread):
         self.__flag.set()
         self.__running.clear()
         self.stim_list.append((time(), StimType.Disconnect.value))
-        self.publish(BCIEvent.stim_stop)
+        # self.publish(BCIEvent.stim_stop)

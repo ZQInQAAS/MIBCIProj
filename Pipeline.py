@@ -24,11 +24,10 @@ class Pipeline(object):
         self.stim.subscribe(BCIEvent.change_stim, self.interface.handle_stim)
         # self.stim.subscribe(BCIEvent.change_stim, main_cfg.exo.handle_stim)
         # self.interface.subscribe(BCIEvent.gaze_focus, self.stim.get_gaze)
-        self.stim.subscribe(BCIEvent.stim_stop, self.save_data)
-        self.stim.subscribe(BCIEvent.stim_stop, self.ns_reader.stop_data_reader)
+        self.stim.subscribe(BCIEvent.stim_stop, self.stop_and_save)
         self.interface.subscribe(BCIEvent.MRsubmit, self.stim.MRsubmit)
         self.interface.subscribe(BCIEvent.cue_disconnect, self.stim.stop_stim)
-        # self.interface.subscribe(BCIEvent.cue_disconnect, self.ns_reader.stop_data_reader)
+        self.interface.subscribe(BCIEvent.cue_disconnect, self.stop)
         if self.is_feedback:
             self.processor = Processor(self.main_cfg)
             self.processor.subscribe(BCIEvent.readns_header, self.ns_reader.get_sample_rate)
@@ -37,7 +36,6 @@ class Pipeline(object):
             self.processor.subscribe(BCIEvent.online_bar, self.interface.online_bar)
             self.processor.subscribe(BCIEvent.online_face, self.interface.online_face)
             # self.processor.subscribe(BCIEvent.online_ctrl, main_cfg.exo.online_feedback)
-            self.stim.subscribe(BCIEvent.stim_stop, self.processor.stop)
 
     def start(self):
         self.ns_reader.start()
@@ -46,6 +44,15 @@ class Pipeline(object):
         if self.is_feedback:
             self.processor.start()
         self.interface.Show()
+
+    def stop(self):
+        self.ns_reader.stop_data_reader()
+        if self.is_feedback:
+            self.processor.stop()
+
+    def stop_and_save(self):
+        self.save_data()
+        self.stop()
 
     def save_data(self):
         # nsheader_dict = self.ns_reader.get_head_settings()
@@ -56,10 +63,11 @@ class Pipeline(object):
         # stim_pram_dict = self.main_cfg.stim_cfg.get_stim_pram()
         is_pre = '_pre' if self.main_cfg.is_pre else '_post'
         if self.main_cfg.session_type == 'Baseline':
-            ns_signal = self.cal_baseline(ns_signal, stim_log)
+            ns_signal1 = self.cal_baseline(ns_signal, stim_log)
             path_name = self.save_data_path + r'/' + self.main_cfg.session_type + is_pre
-            np.savez(path_name + '_eo', signal=ns_signal[0], events=events, stim_log=stim_log)
-            np.savez(path_name + '_ec', signal=ns_signal[1], events=events, stim_log=stim_log)
+            np.savez(path_name + '_eo', signal=ns_signal1[0], events=events, stim_log=stim_log)
+            np.savez(path_name + '_ec', signal=ns_signal1[1], events=events, stim_log=stim_log)
+            np.savez(path_name, signal=ns_signal, events=events, stim_log=stim_log)
         else:
             if self.main_cfg.session_type == 'MRT':
                 path = self.save_data_path + r"/" + self.main_cfg.session_type + is_pre
@@ -79,7 +87,7 @@ class Pipeline(object):
         data_time = np.linspace(0, last_time - first_time, num=ns_signal.shape[0])
         base_idx = [stim_log.iloc[2, 0], stim_log.iloc[3, 0],  # idx of ['CrossOnScreen', 'EndOfBaseline'] eye-open
                     stim_log.iloc[4, 0], stim_log.iloc[5, 0]]  # eye-closed
-        fs = 200  # NS random时
+        # fs = 200  # NS random时
         for i in range(len(base_idx)):
             for j in range(int(base_idx[i] * fs - 50), len(data_time)):
                 if data_time[j] > base_idx[i]:
@@ -89,6 +97,7 @@ class Pipeline(object):
                     break
         ns_signal_eo = ns_signal[base_idx[0]:base_idx[1], :]
         ns_signal_ec = ns_signal[base_idx[2]:base_idx[3], :]
+        print(base_idx)
         return ns_signal_eo, ns_signal_ec
 
 

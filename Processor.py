@@ -250,4 +250,7 @@ def testmain():
     # is_reached = p.is_reached_threshold(signal1)
 
 if __name__ == '__main__':
+    path = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\cax\cax_20210604\Baseline_post_ec.npz'
+    data = dict(np.load(path, allow_pickle=True))
+    baseline_eo = data['signal']
     print('1')
