@@ -90,3 +90,6 @@ if __name__ == '__main__':
     # base_alpha_rela_power = model['base_alpha_rela_power']
     pa = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\Acq_20210601_1502_08.npz'
     print('1')
+    import os
+    p = os.path.abspath(os.path.dirname(os.getcwd()))
+    print(p)

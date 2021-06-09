@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from sklearn import svm
 from process_tools import csp_filter, bandpass_filter
@@ -26,3 +27,7 @@ class Classification(object):
         after_csp_test_x = self.csp.transform(after_filter_test_x)
         predict = self.svm_clf.predict(after_csp_test_x)
         return predict
+
+
+if __name__ == '__main__':
+    parent_path = os.path.abspath(os.path.dirname(os.getcwd()))  # NF

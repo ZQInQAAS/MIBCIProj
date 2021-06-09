@@ -225,15 +225,18 @@ def cal_MR_score(MR_answer, is_pre):
 
 
 if __name__ == '__main__':
-    p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210603\MRPre_answer.npz'
+    import os
+    p = os.path.abspath(os.getcwd())
+    p = p + r'\data_set\CYH\CYH_20210607\MRT_post_answer.npz'
     MRPre_result = dict(np.load(p, allow_pickle=True))
     MR_answer = MRPre_result['MR_answer']
     tlist = MRPre_result['tlist']
-    s = cal_MR_score(MR_answer, 'MRPost')
+    is_pre = False
+    s = cal_MR_score(MR_answer, is_pre)
     # p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPre_20210601_1445_53.npz'
     # data = dict(np.load(p, allow_pickle=True))
     # sig = data['events']
     # p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPost_20210601_1614_41.npz'
     # data = dict(np.load(p, allow_pickle=True))
     # sig2 = data['events']
-    print('1')
+    print(s)
