@@ -10,7 +10,7 @@ from mne.time_frequency import psd_welch, psd_multitaper
 def cal_power_feature(signal, ch, freq_min=8, freq_max=30, rp=False):
     # signal (n_times, n_channels)  计算某频带的信号在指定通道的均值
     info = mne.create_info(ch_names, fs, ch_types)
-    info.set_montage('standard_1005')
+    info.set_montage('standard_1020')
     raw_mne = mne.io.RawArray(signal.T, info, verbose=0)  # RawArray input (n_channels, n_times)
     raw_mne.set_eeg_reference(ref_channels='average', projection=True, verbose=0).apply_proj()  # CAR
     # raw_mne.filter(1, 100, verbose=0)  # band pass
@@ -23,7 +23,7 @@ def cal_power_feature(signal, ch, freq_min=8, freq_max=30, rp=False):
     power_ch = simps(psd, dx=freq_res)  # 求积分 power:(channal,)
     power = np.average(power_ch)  # 通道平均
     if rp:
-        psd, freqs = psd_multitaper(raw_mne, fmin=2, fmax=50, adaptive=True, normalization='full', verbose=0)
+        psd, freqs = psd_multitaper(raw_mne, fmin=1, fmax=50, adaptive=True, normalization='full', verbose=0)
         freq_res = freqs[1] - freqs[0]  # 频率分辨率
         power_ch = simps(psd, dx=freq_res)  # 求积分 power:(channal,)
         power_all = np.average(power_ch)  # 通道平均
@@ -54,14 +54,14 @@ class MIdataset(object):
     @LazyProperty
     def info(self):
         montage = 'standard_1020'
-        self._info = mne.create_info(self.ch_names, fs, self.ch_types)
+        self._info = mne.create_info(self.ch_names, fs, self.ch_types, verbose=0)
         self._info.set_montage(montage)
         return self._info
 
     @LazyProperty
     def raw_mne(self):
         self.info['events'] = self.events
-        self._raw_mne = mne.io.RawArray(self.data.T, self.info)  # RawArray input (n_channels, n_times)
+        self._raw_mne = mne.io.RawArray(self.data.T, self.info, verbose=0)  # RawArray input (n_channels, n_times)
         # self._raw_mne.pick_types(eog=False, eeg=True)
         return self._raw_mne
 
@@ -69,8 +69,8 @@ class MIdataset(object):
     def epochs_mne(self):
         # epochs: (n_epochs, n_chans, n_times)
         # reject_criteria = dict(eeg=150e-6, eog=250e-6)  # eeg150 µV  eog250 µV Exclude the signal with large amplitude
-        self._epochs_mne = mne.Epochs(self.raw_mne, self.events, self.event_id,
-                                      tmin=-4, tmax=5, baseline=None, preload=True)
+        self._epochs_mne = mne.Epochs(self.raw_mne, self.events, self.event_id, tmin=-4, tmax=5,
+                                      baseline=None, preload=True, verbose=0)
         return self._epochs_mne
 
     def get_raw_data(self):
@@ -126,17 +126,17 @@ class MIdataset(object):
         power.plot(picks=ch_name, baseline=(-2, 0), mode='logratio', title=event_name + ch_name)
 
     def bandpass_filter(self, l_freq=1, h_freq=40):
-        self.raw_mne.filter(l_freq, h_freq, verbose='warning')
+        self.raw_mne.filter(l_freq, h_freq, verbose=0)
 
     def set_reference(self, ref='average'):
         self.raw_mne.set_eeg_reference(ref_channels=ref, projection=True).apply_proj()  #CAR
 
     def removeEOGbyICA(self):
         # 根据EOG寻找相似IC 去眼电
-        ica = mne.preprocessing.ICA(n_components=12, random_state=97, max_iter=800)
+        ica = mne.preprocessing.ICA(n_components=12, random_state=97, max_iter=800, verbose=0)
         ica.fit(self.raw_mne)
         ica.exclude = []
-        eog_indices, eog_scores = ica.find_bads_eog(self.raw_mne, threshold=2.3)
+        eog_indices, eog_scores = ica.find_bads_eog(self.raw_mne, threshold=2.3, verbose=0)
         ica.exclude = eog_indices
         # orig_raw = self.raw_mne.copy()
         ica.apply(self.raw_mne)

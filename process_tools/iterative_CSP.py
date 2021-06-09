@@ -1,7 +1,6 @@
 import numpy as np
 from process_tools import csp_filter
-from MIdataset_NF import MIdataset
-# from MIdataset_nonNF import MIdataset
+
 
 
 def iterative_CSP_LR(data_x, ch_names):
@@ -56,6 +55,7 @@ def isside(ch_name, side):
 
 
 def pipeline(p):
+    from MIdataset_NF import MIdataset
     # subject_set = os.listdir(dataset_path)
     subject_set = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12']
     df = pd.DataFrame(columns=['npz_file', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'ch9', 'ch10', ])
