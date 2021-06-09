@@ -48,7 +48,7 @@ class Processor(PyPublisher):
         self.rest_threshold_list = []
         self.left_threshold = -0.05
         self.right_threshold = 0.05
-        self.rest_threshold = 0.05
+        self.rest_threshold = 0.1
         self.t_stride = 0.01  # 阈值调整步长
         self.is_left = None
 
@@ -115,6 +115,7 @@ class Processor(PyPublisher):
                         self.label = StimType.Left
                 elif sum(self.is_reached_buffer) < len(self.is_reached_buffer)*0.3:  # sum(self.wait_list) == 0
                     self.down_threshold()
+                    self.is_reached_buffer = []
                 if self.is_reached_buffer != []:
                     self.is_reached_buffer.pop(0)
 
@@ -170,6 +171,7 @@ class Processor(PyPublisher):
             if self.rest_threshold > (rela_rest_power + self.t_stride):
                 # self.rest_threshold = rela_rest_power + self.t_stride
                 self.rest_threshold = self.rest_threshold - self.t_stride
+                self.rest_threshold = self.rest_threshold if self.rest_threshold > 0.01 else 0.01
                 self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
                 print('Down threshold, Rest_threshold', self.rest_threshold)
         else:
