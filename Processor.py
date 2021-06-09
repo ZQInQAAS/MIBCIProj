@@ -49,7 +49,7 @@ class Processor(PyPublisher):
         self.left_threshold = -0.05
         self.right_threshold = 0.05
         self.rest_threshold = 0.05
-        self.t_stride = 0.005  # 阈值调整步长
+        self.t_stride = 0.01  # 阈值调整步长
         self.is_left = None
 
     def start(self):
@@ -96,8 +96,8 @@ class Processor(PyPublisher):
                 self.power_buffer.pop(0)
             # print(time.time(), 'processor')
             try:
-                # avg_power = np.mean(self.power_buffer)
-                avg_power = rela_power
+                avg_power = np.mean(self.power_buffer)
+                # avg_power = rela_power
                 self.publish(BCIEvent.online_bar, avg_power, self.label, is_reached)
             except RuntimeError:
                 print('Interface has been deleted.')
@@ -145,7 +145,8 @@ class Processor(PyPublisher):
         if self.label == StimType.Rest:
             rela_rest_power = np.mean(self.rela_rest_power_list[-self.is_reached_buffer_len:-1])  # 正
             if self.rest_threshold < rela_rest_power - self.t_stride:
-                self.rest_threshold = rela_rest_power - self.t_stride
+                # self.rest_threshold = rela_rest_power - self.t_stride
+                self.rest_threshold = self.rest_threshold + self.t_stride
                 self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
                 print('Up threshold, Rest_threshold', self.rest_threshold)
         else:
@@ -167,7 +168,8 @@ class Processor(PyPublisher):
         if self.label == StimType.Rest:
             rela_rest_power = np.mean(self.rela_rest_power_list[-self.is_reached_buffer_len:-1])
             if self.rest_threshold > (rela_rest_power + self.t_stride):
-                self.rest_threshold = rela_rest_power + self.t_stride
+                # self.rest_threshold = rela_rest_power + self.t_stride
+                self.rest_threshold = self.rest_threshold - self.t_stride
                 self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
                 print('Down threshold, Rest_threshold', self.rest_threshold)
         else:

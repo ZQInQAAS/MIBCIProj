@@ -103,7 +103,12 @@ class MainWindow(wx.Frame):
         self.TrainModelBtn.Bind(wx.EVT_BUTTON, self.on_train_model)
 
     def onClose(self, event):
-        self.pipline.ns_reader.stop_data_reader()
+        try:
+            self.pipline.ns_reader.stop_data_reader()  # TODO:try OSError: [WinError 10038]
+        except OSError:
+            print('Scan has been closed.')
+        except AttributeError:
+            print(r'MainWindow object has no attribute pipline')
         self.Destroy()
 
     def on_new_subject(self, event):
