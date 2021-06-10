@@ -12,7 +12,8 @@ def cal_power_feature(signal, ch, freq_min=8, freq_max=30, rp=False):
     info = mne.create_info(ch_names, fs, ch_types)
     info.set_montage('standard_1020')
     raw_mne = mne.io.RawArray(signal.T, info, verbose=0)  # RawArray input (n_channels, n_times)
-    raw_mne.set_eeg_reference(ref_channels='average', projection=True, verbose=0).apply_proj()  # CAR
+    # ref = ['M1', 'M2']  # 'average'
+    # raw_mne.set_eeg_reference(ref_channels=ref, projection=True, verbose=0).apply_proj()  # CAR
     # raw_mne.filter(1, 100, verbose=0)  # band pass
     raw_mne = raw_mne.pick_channels(list(ch))
     raw_mne = raw_mne.reorder_channels(list(ch))

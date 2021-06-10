@@ -60,8 +60,8 @@ class TrainModelWindow(wx.Dialog):
 
     def get_individual_LR(self, baseline_eo):
         data = MIdataset(self.train_path_ctrl.GetPath())
-        data.bandpass_filter(1, 100)  # band pass
-        data.set_reference()  # CAR
+        # data.bandpass_filter(1, 100)  # band pass
+        # data.set_reference()  # CAR
         data.bandpass_filter(8, 30)
         select_ch = pick_motor_ch  # M1附近区域
         data_array, label = data.get_epoch_data(select_label=['Left', 'Right'], select_ch=select_ch)
