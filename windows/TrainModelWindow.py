@@ -51,12 +51,13 @@ class TrainModelWindow(wx.Dialog):
     def get_UA_RP(self, baseline_eo):
         # get peak alpha frequency(paf) from eye_closed baseline
         ec_baseline_pre = MIdataset(self.save_model_path + r'/Baseline_pre_ec.npz')
-        ec_baseline_pre.bandpass_filter(1, 100)  # band pass
-        PAF, AlphaBand = ec_baseline_pre.get_IAF(fmin=7, fmax=14)
-        print('PAF:', PAF)
-        base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, freq_min=AlphaBand[0],
-                                                              freq_max=AlphaBand[1], rp=True)
-        return PAF, AlphaBand, base_UA_power, base_rela_UA_power
+        # ec_baseline_pre.bandpass_filter(1, 100)  # band pass
+        PAF, AlphaBand = ec_baseline_pre.get_IAF()
+        print('PAF:', PAF, 'band:', AlphaBand)
+        alpha_band = (PAF-2, PAF+2)
+        base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, freq_min=alpha_band[0],
+                                                              freq_max=alpha_band[1], rp=True)
+        return PAF, alpha_band, base_UA_power, base_rela_UA_power
 
     def get_individual_LR(self, baseline_eo):
         data = MIdataset(self.train_path_ctrl.GetPath())

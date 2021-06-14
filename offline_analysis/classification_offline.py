@@ -81,13 +81,13 @@ def acc(path, la):
 
 if __name__ == '__main__':
     p = os.path.abspath(os.path.dirname(os.getcwd()))
-    p = p + r'\data_set\XY\XY_20210607'
-    path = p + r'\Acq_pre_20210607_1412_28.npz'
-    path2 = p + r'\Acq_pre_20210607_1420_32.npz'
-    path3 = p + r'\Acq_pre_20210607_1427_30.npz'
-    path4 = p + r'\Acq_post_20210607_1505_54.npz'
-    path5 = p + r'\Acq_post_20210607_1512_42.npz'
-    path6 = p + r'\Acq_post_20210607_1519_20.npz'
+    p = p + r'\data_set\XY\XY_20210611'
+    path = p + r'\Acq_pre_20210611_1555_16.npz'
+    path2 = p + r'\Acq_pre_20210611_1602_27.npz'
+    path3 = p + r'\Acq_pre_20210611_1609_52.npz'
+    path4 = p + r'\Acq_post_20210611_1649_16.npz'
+    path5 = p + r'\Acq_post_20210611_1659_33.npz'
+    path6 = p + r'\Acq_post_20210611_1708_21.npz'
     la = ['Right', 'Rest']
     acc(path, la)
     acc(path2, la)
