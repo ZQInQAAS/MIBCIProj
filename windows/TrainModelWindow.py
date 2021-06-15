@@ -51,9 +51,10 @@ class TrainModelWindow(wx.Dialog):
     def get_UA_RP(self, baseline_eo):
         # get peak alpha frequency(paf) from eye_closed baseline
         ec_baseline_pre = MIdataset(self.save_model_path + r'/Baseline_pre_ec.npz')
-        # ec_baseline_pre.bandpass_filter(1, 100)  # band pass
-        PAF, AlphaBand = ec_baseline_pre.get_IAF()
+        ec_baseline_pre.bandpass_filter(1, 100)  # band pass
+        PAF, AlphaBand = ec_baseline_pre.get_IAF(fmin=7, fmax=14)
         print('PAF:', PAF, 'band:', AlphaBand)
+        # PAF=10
         alpha_band = (PAF-2, PAF+2)
         base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, freq_min=alpha_band[0],
                                                               freq_max=alpha_band[1], rp=True)
@@ -90,7 +91,16 @@ if __name__ == '__main__':
     # model = dict(np.load(r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\S1\S1_20210528\model.npz'))
     # base_alpha_rela_power = model['base_alpha_rela_power']
     pa = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\Acq_20210601_1502_08.npz'
-    print('1')
     import os
-    p = os.path.abspath(os.path.dirname(os.getcwd()))
-    print(p)
+    from matplotlib import pyplot as plt
+    # p = os.path.abspath(os.path.dirname(os.getcwd()))
+    p0= r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\WRQ\WRQ_20210615\Baseline_pre_ec.npz'
+    p1 = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\PNM\PNM_20210607\Baseline_pre_ec.npz'
+    p2 = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\CYH\CYH_20210607\Baseline_post_ec.npz'
+    p3 = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\XY\XY_20210607\Baseline_post_ec.npz'
+    ec_baseline_pre = MIdataset(p2)
+    # ec_baseline_pre.bandpass_filter(1, 100)  # band pass
+    fig, ax = plt.subplots()
+    PAF, AlphaBand = ec_baseline_pre.get_IAF(fmin=7.5, fmax=13.5, ax=ax)
+    plt.show()
+    print('PAF:', PAF, 'band:', AlphaBand)

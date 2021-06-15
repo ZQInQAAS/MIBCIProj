@@ -94,10 +94,10 @@ class MIdataset(object):
         data = data.swapaxes(0, 2)
         return data, label
 
-    def get_IAF(self, raw=None, ch=None, fmin=None, fmax=None, res=0.25):
+    def get_IAF(self, raw=None, ch=None, fmin=None, fmax=None, res=0.25, ax=False):
         if raw is None:
             raw = self.raw_mne
-        iaf = savgol_iaf(raw, picks=ch, fmin=fmin, fmax=fmax, resolution=res, ax=False)
+        iaf = savgol_iaf(raw, picks=ch, fmin=fmin, fmax=fmax, resolution=res, ax=ax)
         return iaf.PeakAlphaFrequency, iaf.AlphaBand
 
     def plot_raw_psd(self, fmin=1, fmax=40):
