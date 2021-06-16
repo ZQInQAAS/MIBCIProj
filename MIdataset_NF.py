@@ -7,27 +7,37 @@ from BCIConfig import ch_names, ch_types, event_id, fs
 from mne.time_frequency import psd_welch, psd_multitaper
 
 
-def cal_power_feature(signal, ch, freq_min=8, freq_max=30, rp=False):
-    # signal (n_times, n_channels)  计算某频带的信号在指定通道的均值
+def get_raw(signal):
     info = mne.create_info(ch_names, fs, ch_types)
     info.set_montage('standard_1020')
     raw_mne = mne.io.RawArray(signal.T, info, verbose=0)  # RawArray input (n_channels, n_times)
     # ref = ['M1', 'M2']  # 'average'
     # raw_mne.set_eeg_reference(ref_channels=ref, projection=True, verbose=0).apply_proj()  # CAR
-    # raw_mne.filter(1, 100, verbose=0)  # band pass
-    raw_mne = raw_mne.pick_channels(list(ch))
-    raw_mne = raw_mne.reorder_channels(list(ch))
+    return raw_mne
+
+
+def get_power(raw_mne, fmin, fmax):
     # psd, freqs = psd_welch(raw_mne, fmin=fmin, fmax=fmax, proj=True, verbose='warning')  # psd (channal, freq)
-    # psd_multitaper normalization='full' PSD将由采样率和信号长度归一化
-    psd, freqs = psd_multitaper(raw_mne, fmin=freq_min, fmax=freq_max, adaptive=True, normalization='full', verbose=0)
+    psd, freqs = psd_multitaper(raw_mne, fmin=fmin, fmax=fmax, adaptive=True,
+                                normalization='full', verbose=0)  # normalization='full' PSD将由采样率和信号长度归一化
     freq_res = freqs[1] - freqs[0]  # 频率分辨率
     power_ch = simps(psd, dx=freq_res)  # 求积分 power:(channal,)
     power = np.average(power_ch)  # 通道平均
+    return power
+
+
+def cal_power_feature(signal, ch, fmin=8, fmax=30, rp=False):
+    # signal (n_times, n_channels)  计算某频带的信号在指定通道的均值
+    raw_mne = get_raw(signal)
+    # data = MIdataset()
+    # data.set_raw_data(signal)
+    # data.removeEOGbyICA()
+    # raw_mne = data.raw_mne
+    raw_mne = raw_mne.pick_channels(list(ch))
+    raw_mne = raw_mne.reorder_channels(list(ch))
+    power = get_power(raw_mne, fmin, fmax)
     if rp:
-        psd, freqs = psd_multitaper(raw_mne, fmin=1, fmax=50, adaptive=True, normalization='full', verbose=0)
-        freq_res = freqs[1] - freqs[0]  # 频率分辨率
-        power_ch = simps(psd, dx=freq_res)  # 求积分 power:(channal,)
-        power_all = np.average(power_ch)  # 通道平均
+        power_all = get_power(raw_mne, fmin=1, fmax=50)
         power_rp = power / power_all
         return power, power_rp
     else:
@@ -35,8 +45,9 @@ def cal_power_feature(signal, ch, freq_min=8, freq_max=30, rp=False):
 
 
 class MIdataset(object):
-    def __init__(self, path):
-        self.read_newdata(path)
+    def __init__(self, path=None):
+        if path:
+            self.read_newdata(path)
         self.epoch_data = None
         self._info = None
         self._raw_mne = None
@@ -74,12 +85,13 @@ class MIdataset(object):
                                       baseline=None, preload=True, verbose=0)
         return self._epochs_mne
 
+    def set_raw_data(self, signal):
+        # signal (n_times, n_channels)  计算某频带的信号在指定通道的均值
+        self.raw_mne = mne.io.RawArray(signal.T, self.info, verbose=0)
+
     def get_raw_data(self):
         # return (samples, channels)
-        if self._raw_mne:
-            return self.raw_mne.get_data(picks='eeg').T  # get_data (n_channels, n_times)
-        else:
-            return self.data[:, :-2]
+        return self.raw_mne.get_data(picks='eeg').T  # get_data (n_channels, n_times)
 
     def get_epoch_data(self, tmin=0, tmax=5, select_label=None, select_ch=None):
         # return: (sample, channel, trial) label:left right foot rest
@@ -99,6 +111,22 @@ class MIdataset(object):
             raw = self.raw_mne
         iaf = savgol_iaf(raw, picks=ch, fmin=fmin, fmax=fmax, resolution=res, ax=ax)
         return iaf.PeakAlphaFrequency, iaf.AlphaBand
+
+    def bandpass_filter(self, l_freq=1, h_freq=40):
+        self.raw_mne.filter(l_freq, h_freq, verbose=0)
+
+    def set_reference(self, ref='average'):
+        self.raw_mne.set_eeg_reference(ref_channels=ref, projection=True).apply_proj()  #CAR
+
+    def removeEOGbyICA(self):
+        # 根据EOG寻找相似IC 去眼电
+        ica = mne.preprocessing.ICA(n_components=12, random_state=97, max_iter=800, verbose=0)
+        ica.fit(self.raw_mne)
+        ica.exclude = []
+        eog_indices, eog_scores = ica.find_bads_eog(self.raw_mne, threshold=2.3, verbose=0)
+        ica.exclude = eog_indices
+        # orig_raw = self.raw_mne.copy()
+        ica.apply(self.raw_mne)
 
     def plot_raw_psd(self, fmin=1, fmax=40):
         self.raw_mne.pick_types(eeg=True, meg=False, stim=False, eog=True)
@@ -126,21 +154,6 @@ class MIdataset(object):
         power = mne.time_frequency.tfr_morlet(event_epochs, n_cycles=2, return_itc=False, freqs=frequencies, decim=3)
         power.plot(picks=ch_name, baseline=(-2, 0), mode='logratio', title=event_name + ch_name)
 
-    def bandpass_filter(self, l_freq=1, h_freq=40):
-        self.raw_mne.filter(l_freq, h_freq, verbose=0)
-
-    def set_reference(self, ref='average'):
-        self.raw_mne.set_eeg_reference(ref_channels=ref, projection=True).apply_proj()  #CAR
-
-    def removeEOGbyICA(self):
-        # 根据EOG寻找相似IC 去眼电
-        ica = mne.preprocessing.ICA(n_components=12, random_state=97, max_iter=800, verbose=0)
-        ica.fit(self.raw_mne)
-        ica.exclude = []
-        eog_indices, eog_scores = ica.find_bads_eog(self.raw_mne, threshold=2.3, verbose=0)
-        ica.exclude = eog_indices
-        # orig_raw = self.raw_mne.copy()
-        ica.apply(self.raw_mne)
 
 
 if __name__ == '__main__':
