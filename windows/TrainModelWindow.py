@@ -56,8 +56,8 @@ class TrainModelWindow(wx.Dialog):
         print('PAF:', PAF, 'band:', AlphaBand)
         # PAF=10
         alpha_band = (PAF-2, PAF+2)
-        base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, freq_min=alpha_band[0],
-                                                              freq_max=alpha_band[1], rp=True)
+        base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, fmin=alpha_band[0],
+                                                              fmax=alpha_band[1], rp=True)
         return PAF, alpha_band, base_UA_power, base_rela_UA_power
 
     def get_individual_LR(self, baseline_eo):
@@ -70,8 +70,8 @@ class TrainModelWindow(wx.Dialog):
         selected_ch_names = iterative_CSP_LR(data_array, select_ch)  # csp select
         left_ch = selected_ch_names[:, 0]
         right_ch = selected_ch_names[:, 1]
-        base_leftch_power = cal_power_feature(baseline_eo, left_ch, freq_min=8, freq_max=30)
-        base_rightch_power = cal_power_feature(baseline_eo, right_ch, freq_min=8, freq_max=30)
+        base_leftch_power = cal_power_feature(baseline_eo, left_ch, fmin=8, fmax=30)
+        base_rightch_power = cal_power_feature(baseline_eo, right_ch, fmin=8, fmax=30)
         return left_ch, right_ch, base_leftch_power, base_rightch_power
 
     def on_train_model(self, event):

@@ -122,14 +122,14 @@ class Processor(PyPublisher):
     def is_reached_threshold(self, signal):
         # signal (sample, channal)
         if self.label == StimType.Rest:
-            rest_power, rest_power_rp = cal_power_feature(signal, pick_rest_ch, freq_min=self.IAF_band[0],
-                                                          freq_max=self.IAF_band[1], rp=True)
+            rest_power, rest_power_rp = cal_power_feature(signal, pick_rest_ch, fmin=self.IAF_band[0],
+                                                          fmax=self.IAF_band[1], rp=True)
             rela_rest_power = (rest_power_rp - self.base_alpha_power) / self.base_alpha_power
             self.rela_rest_power_list.append(rela_rest_power)
             return rela_rest_power, rela_rest_power > self.rest_threshold
         else:  # Left / Right
-            left_power = cal_power_feature(signal, self.left_ch, freq_min=8, freq_max=30)
-            right_power = cal_power_feature(signal, self.right_ch, freq_min=8, freq_max=30)
+            left_power = cal_power_feature(signal, self.left_ch, fmin=8, fmax=30)
+            right_power = cal_power_feature(signal, self.right_ch, fmin=8, fmax=30)
             rela_left_power = (left_power - self.base_leftch_power) / self.base_leftch_power
             rela_right_power = (right_power - self.base_rightch_power) / self.base_rightch_power
             self.rela_left_power_list.append(rela_left_power)
@@ -245,8 +245,8 @@ def testmain():
     t0 = time.time()
     for i in range(100):
         time.sleep(1)
-        p.base_power_ERDleft = cal_power_feature(p.baseline_signal, p.left_ch, freq_min=8, freq_max=30)
-        p.base_power_ERDright = cal_power_feature(p.baseline_signal, p.right_ch, freq_min=8, freq_max=30)
+        p.base_power_ERDleft = cal_power_feature(p.baseline_signal, p.left_ch, fmin=8, fmax=30)
+        p.base_power_ERDright = cal_power_feature(p.baseline_signal, p.right_ch, fmin=8, fmax=30)
         is_reached = p.is_reached_threshold(signal1)
         print(time.time()-t0, is_reached)
         t0 = time.time()

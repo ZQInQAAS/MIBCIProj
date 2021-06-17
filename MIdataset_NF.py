@@ -53,15 +53,16 @@ class MIdataset(object):
         self._raw_mne = None
         self._epochs_mne = None
         self.mne_scallings = dict(eeg=20, eog=500)
+        self.ch_names = ch_names
+        self.ch_types = ch_types
+        self.event_id = event_id
 
     def read_newdata(self, path):
         npz_data_dict = dict(np.load(path, allow_pickle=True))
         self.data = npz_data_dict['signal']
         self.events = npz_data_dict['events']
         # self.stim_log = npz_data_dict['stim_log']
-        self.ch_names =ch_names
-        self.ch_types = ch_types
-        self.event_id = event_id
+
 
     @LazyProperty
     def info(self):
