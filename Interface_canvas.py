@@ -170,10 +170,10 @@ class Interface(PyPublisher, wx.Frame):
         print(self.session_type + ' answer saved.')
 
     def online_bar(self, score, label, is_reached):
-        print(time.time(), score, is_reached)
+        # print(time.time(), score, is_reached)
         bar_width = 50
         # self.bar_len = self.bar_len + score * 10  # TODO 调整速度参数
-        self.bar_len = score * 150
+        self.bar_len = score * 100
         # bar_len = score * 150
         color_name = 'orange' if self.bar_len > 0 and label in [StimType.Rest, StimType.Right] or \
                                  (self.bar_len < 0 and label == StimType.Left) else 'slate blue'

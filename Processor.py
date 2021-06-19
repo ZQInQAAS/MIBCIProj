@@ -17,7 +17,7 @@ class Processor(PyPublisher):
         PyPublisher.__init__(self)
         # self.model_path = main_cfg.subject.get_model_path()
         self.save_path = main_cfg.subject.get_date_dir()
-        self.epoch_dur = 0.1  # 每0.1秒判断一次  10Hz
+        self.epoch_dur = 0.01  # 每0.02秒判断一次  10Hz
         self.proc_bar_len = main_cfg.stim_cfg.display_cue_duration/self.epoch_dur
         self.online_timer = RepeatingTimer(self.epoch_dur, self.online_run)
         self.init_data()
@@ -97,7 +97,7 @@ class Processor(PyPublisher):
                 print('Interface has been deleted.')
                 sys.exit(1)
             self.is_reached_buffer.append(is_reached)
-            print('wait_list:', len(self.is_reached_buffer))
+            # print('wait_list:', len(self.is_reached_buffer))
             if len(self.is_reached_buffer) == self.is_reached_buffer_len:  # NF session
                 if sum(self.is_reached_buffer) > len(self.is_reached_buffer) * 0.7:  # sum(self.wait_list) == len(self.wait_list)
                     self.publish(BCIEvent.online_face, self.label)
@@ -116,9 +116,12 @@ class Processor(PyPublisher):
     def is_reached_threshold(self, signal):
         # signal (sample, channal)
         if self.label == StimType.Rest:
-            is_eog = np.max(signal[:, -1]) > 200  # vEOG 眨眼
+            is_eog = np.max(signal[:, -1]) > 250 or np.min(signal[:, -1]) < -250  # vEOG 眨眼
             if is_eog:
-                rela_rest_power = self.rela_rest_power_list[-1]
+                try:
+                    rela_rest_power = self.rela_rest_power_list[-1]
+                except IndexError:
+                    rela_rest_power = 0
             else:
                 rest_power, rest_power_rp = cal_power_feature(signal, pick_rest_ch, fmin=self.IAF_band[0],
                                                               fmax=self.IAF_band[1], rp=True)
@@ -147,7 +150,7 @@ class Processor(PyPublisher):
                 # self.rest_threshold = rela_rest_power - self.t_stride
                 self.rest_threshold = self.rest_threshold + self.t_stride
                 self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
-                print('Up threshold, Rest_threshold', self.rest_threshold)
+                # print('Up threshold, Rest_threshold', self.rest_threshold)
         else:
             left_power = np.mean(self.rela_left_power_list[-self.is_reached_buffer_len:-1])
             right_power = np.mean(self.rela_right_power_list[-self.is_reached_buffer_len:-1])
@@ -171,7 +174,7 @@ class Processor(PyPublisher):
                 self.rest_threshold = self.rest_threshold - self.t_stride
                 self.rest_threshold = self.rest_threshold if self.rest_threshold > 0.01 else 0.01
                 self.rest_threshold_list.append([time.time() - self.t0, self.rest_threshold])
-                print('Down threshold, Rest_threshold', self.rest_threshold)
+                # print('Down threshold, Rest_threshold', self.rest_threshold)
         else:
             left_power = np.mean(self.rela_left_power_list[-self.is_reached_buffer_len:-1])
             right_power = np.mean(self.rela_right_power_list[-self.is_reached_buffer_len:-1])

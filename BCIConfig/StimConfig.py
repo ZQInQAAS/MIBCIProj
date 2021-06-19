@@ -18,7 +18,7 @@ class StimConfig(object):
         self.baseline_duration = 60  # 60 (1 min)
         self.cue_interval_duration = 3
         self.display_cue_duration = 4
-        self.NF_training_duration = 180  # 180 (3 min)
+        self.NF_training_duration = 60  # 180 (3 min)
         self.MRwait_duration = 8
         self.MRanswer_duration = 20
         self.move_sound_path = r'../cue_material/move_sound.wav'
