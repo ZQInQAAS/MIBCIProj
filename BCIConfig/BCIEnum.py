@@ -53,7 +53,7 @@ ch_names = ['Fp1', 'Fpz', 'Fp2', 'AF3', 'AF4', 'F7', 'F5', 'F3', 'F1', 'Fz', 'F2
             'M1', 'TP7', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6', 'TP8', 'M2',
             'P7', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6', 'P8',
             'PO7', 'PO5', 'PO3', 'POz', 'PO4', 'PO6', 'PO8',
-            'O1', 'Oz', 'O2', 'HEOG', 'VEOG']  # 60eeg+2ref+2eog
+            'O1', 'Oz', 'O2', 'HEOG', 'VEOG']  # 60eeg+2ref+2eog(H水平 V竖直)
 
 montage1020 = ['Fp1', 'Fpz', 'Fp2', 'AF9', 'AF7', 'AF5', 'AF3', 'AF1', 'AFz', 'AF2', 'AF4', 'AF6', 'AF8', 'AF10',
                'F9', 'F7', 'F5', 'F3', 'F1', 'Fz', 'F2', 'F4', 'F6', 'F8', 'F10',

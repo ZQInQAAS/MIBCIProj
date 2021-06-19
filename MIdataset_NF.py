@@ -7,15 +7,6 @@ from BCIConfig import ch_names, ch_types, event_id, fs
 from mne.time_frequency import psd_welch, psd_multitaper
 
 
-def get_raw(signal):
-    info = mne.create_info(ch_names, fs, ch_types)
-    info.set_montage('standard_1020')
-    raw_mne = mne.io.RawArray(signal.T, info, verbose=0)  # RawArray input (n_channels, n_times)
-    # ref = ['M1', 'M2']  # 'average'
-    # raw_mne.set_eeg_reference(ref_channels=ref, projection=True, verbose=0).apply_proj()  # CAR
-    return raw_mne
-
-
 def get_power(raw_mne, fmin, fmax):
     # psd, freqs = psd_welch(raw_mne, fmin=fmin, fmax=fmax, proj=True, verbose='warning')  # psd (channal, freq)
     psd, freqs = psd_multitaper(raw_mne, fmin=fmin, fmax=fmax, adaptive=True,
@@ -28,11 +19,10 @@ def get_power(raw_mne, fmin, fmax):
 
 def cal_power_feature(signal, ch, fmin=8, fmax=30, rp=False):
     # signal (n_times, n_channels)  计算某频带的信号在指定通道的均值
-    raw_mne = get_raw(signal)
-    # data = MIdataset()
-    # data.set_raw_data(signal)
+    data = MIdataset()
+    data.set_raw_data(signal)
     # data.removeEOGbyICA()
-    # raw_mne = data.raw_mne
+    raw_mne = data.raw_mne
     raw_mne = raw_mne.pick_channels(list(ch))
     raw_mne = raw_mne.reorder_channels(list(ch))
     power = get_power(raw_mne, fmin, fmax)
@@ -160,8 +150,9 @@ class MIdataset(object):
 if __name__ == '__main__':
     # path = r'D:\Myfiles\EEGProject\data_set\data_set_bcilab\healthy_subject\4class_large_add1\data_clean\S4\S4_20200721' \
     #        r'\NSsignal_2020_07_21_16_05_04.npz'
-    path = r'D:\Myfiles\MIBCI_NF\data_set\wmm\wmm_20210126\Online_20210126_1525_33.npz'
+    path = r'D:\Myfiles\MIBCI_NF\data_set\ZXY\ZXY_20210617\Acq_post_20210617_1103_25.npz'
     # config_p =r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\config.npz'
     d = MIdataset(path)
-    PAF, AB = d.get_IAF()
-    d.plot_tf_analysis('left', 'C3')
+    d.plot_raw_psd()
+    # PAF, AB = d.get_IAF()
+    # d.plot_tf_analysis('left', 'C3')

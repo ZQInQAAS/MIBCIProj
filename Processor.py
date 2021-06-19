@@ -1,20 +1,14 @@
-import os
 import sys
 import mne
 import time
-import random
 import numpy as np
 import pandas as pd
-
-from queue import Queue
-from time import strftime
 from datetime import datetime
 from scipy.integrate import simps
-
 from process_tools import PyPublisher
 from NSDataReader import RepeatingTimer
 from BCIConfig import BCIEvent, StimType
-from MIdataset_NF import cal_power_feature
+from MIdataset_NF import cal_power_feature, MIdataset
 from BCIConfig import pick_rest_ch, fs
 
 
@@ -23,7 +17,7 @@ class Processor(PyPublisher):
         PyPublisher.__init__(self)
         # self.model_path = main_cfg.subject.get_model_path()
         self.save_path = main_cfg.subject.get_date_dir()
-        self.epoch_dur = 0.04  # 每0.04秒判断一次  25Hz
+        self.epoch_dur = 0.1  # 每0.1秒判断一次  10Hz
         self.proc_bar_len = main_cfg.stim_cfg.display_cue_duration/self.epoch_dur
         self.online_timer = RepeatingTimer(self.epoch_dur, self.online_run)
         self.init_data()
@@ -122,9 +116,13 @@ class Processor(PyPublisher):
     def is_reached_threshold(self, signal):
         # signal (sample, channal)
         if self.label == StimType.Rest:
-            rest_power, rest_power_rp = cal_power_feature(signal, pick_rest_ch, fmin=self.IAF_band[0],
-                                                          fmax=self.IAF_band[1], rp=True)
-            rela_rest_power = (rest_power_rp - self.base_alpha_power) / self.base_alpha_power
+            is_eog = np.max(signal[:, -1]) > 200  # vEOG 眨眼
+            if is_eog:
+                rela_rest_power = self.rela_rest_power_list[-1]
+            else:
+                rest_power, rest_power_rp = cal_power_feature(signal, pick_rest_ch, fmin=self.IAF_band[0],
+                                                              fmax=self.IAF_band[1], rp=True)
+                rela_rest_power = (rest_power_rp - self.base_alpha_power) / self.base_alpha_power
             self.rela_rest_power_list.append(rela_rest_power)
             return rela_rest_power, rela_rest_power > self.rest_threshold
         else:  # Left / Right
