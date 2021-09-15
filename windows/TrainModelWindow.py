@@ -3,11 +3,10 @@ import os
 import pickle
 import numpy as np
 from process_tools.load_data import loadnpz
-from process_tools import Classification
 import pandas as pd
-from MIdataset_NF import MIdataset, cal_power_feature
+from MIdataset_NF import MIdataset
 from process_tools import iterative_CSP_LR
-from BCIConfig import pick_motor_ch, pick_rest_ch
+from BCIConfig import pick_motor_ch, pick_rest_ch, events_id_3mi
 
 
 class TrainModelWindow(wx.Dialog):
@@ -50,28 +49,31 @@ class TrainModelWindow(wx.Dialog):
 
     def get_UA_RP(self, baseline_eo):
         # get peak alpha frequency(paf) from eye_closed baseline
-        ec_baseline_pre = MIdataset(self.save_model_path + r'/Baseline_pre_ec.npz')
-        ec_baseline_pre.bandpass_filter(1, 100)  # band pass
-        PAF, AlphaBand = ec_baseline_pre.get_IAF(fmin=7, fmax=14)
+        MI = MIdataset()
+        pre_ec_path = self.save_model_path + r'/Baseline_pre_ec.npz'
+        pre_ec_data, events = MI.read_rawdata_path(pre_ec_path)
+        pre_ec_raw_mne = MI.get_raw_mne(pre_ec_data.T)
+        pre_ec_raw_mne = MI.bandpass_filter(pre_ec_raw_mne, 1, 100)  # band pass
+        PAF, AlphaBand = MI.get_IAF(pre_ec_raw_mne, fmin=7, fmax=14)
         print('PAF:', PAF, 'band:', AlphaBand)
         # PAF=10
         alpha_band = (PAF-2, PAF+2)
-        base_UA_power, base_rela_UA_power = cal_power_feature(baseline_eo, pick_rest_ch, fmin=alpha_band[0],
-                                                              fmax=alpha_band[1], rp=True)
+        base_UA_power, base_rela_UA_power = MI.get_power_byarray(baseline_eo.T, pick_rest_ch,
+                                                                  fmin=alpha_band[0], fmax=alpha_band[1])
         return PAF, alpha_band, base_UA_power, base_rela_UA_power
 
     def get_individual_LR(self, baseline_eo):
-        data = MIdataset(self.train_path_ctrl.GetPath())
-        # data.bandpass_filter(1, 100)  # band pass
-        # data.set_reference()  # CAR
-        data.bandpass_filter(8, 30)
+        MI = MIdataset()
+        data, events = MI.read_rawdata_path(self.train_path_ctrl.GetPath())
+        raw_mne = MI.bandpass_filter(data, 8, 30)
         select_ch = pick_motor_ch  # M1附近区域
-        data_array, label = data.get_epoch_data(select_label=['Left', 'Right'], select_ch=select_ch)
-        selected_ch_names = iterative_CSP_LR(data_array, select_ch)  # csp select
+        epochs_mne = MI.get_epochs_mne(raw_mne, events=events, event_id=events_id_3mi, tmin=-4, tmax=4)
+        epoch_array, label = MI.get_epoch_array(epochs_mne, tmin=0, tmax=4, select_label=['Left', 'Right'], select_ch=select_ch)
+        selected_ch_names = iterative_CSP_LR(epoch_array, select_ch)  # csp select
         left_ch = selected_ch_names[:, 0]
         right_ch = selected_ch_names[:, 1]
-        base_leftch_power = cal_power_feature(baseline_eo, left_ch, fmin=8, fmax=30)
-        base_rightch_power = cal_power_feature(baseline_eo, right_ch, fmin=8, fmax=30)
+        base_leftch_power = MI.get_power_byarray(baseline_eo.T, left_ch, fmin=8, fmax=30)
+        base_rightch_power = MI.get_power_byarray(baseline_eo.T, right_ch, fmin=8, fmax=30)
         return left_ch, right_ch, base_leftch_power, base_rightch_power
 
     def on_train_model(self, event):
