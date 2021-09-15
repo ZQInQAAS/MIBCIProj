@@ -3,3 +3,9 @@ __pycache__/
 data_set/
 Data
 *.py___jb_old___
+*.fif
+35_eeg_no_mri.py
+*.npz
+sensor_connectivity.py
+Untitled.ipynb
+.ipynb_checkpoints/Untitled-checkpoint.ipynb
