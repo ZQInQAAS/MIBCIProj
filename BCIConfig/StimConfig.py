@@ -16,9 +16,9 @@ class StimConfig(object):
         self.each_class_num_acq = 12  # 5
         self.each_class_num_online = 3  # 10
         self.baseline_duration = 60  # 60 (1 min)
-        self.cue_interval_duration = 3
+        self.cue_interval_duration = 3  # 随机3/4s int
         self.display_cue_duration = 4
-        self.NF_training_duration = 60  # 180 (3 min)
+        self.NF_training_duration = 180  # 180 (3 min)
         self.MRwait_duration = 8
         self.MRanswer_duration = 20
         self.move_sound_path = r'../cue_material/move_sound.wav'
@@ -96,6 +96,6 @@ class StimConfig(object):
 if __name__ == '__main__':
     import numpy as np
     stim = StimConfig()
-    seq = stim.generate_stim_list('Online')
+    seq = stim.generate_stim_list('RestNF')
     s = np.array(seq)
     print(seq)

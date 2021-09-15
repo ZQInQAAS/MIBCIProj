@@ -8,7 +8,7 @@ from scipy.integrate import simps
 from process_tools import PyPublisher
 from NSDataReader import RepeatingTimer
 from BCIConfig import BCIEvent, StimType
-from MIdataset_NF import cal_power_feature, MIdataset
+from MIdataset_NF import MIdataset
 from BCIConfig import pick_rest_ch, fs
 
 
@@ -17,8 +17,8 @@ class Processor(PyPublisher):
         PyPublisher.__init__(self)
         # self.model_path = main_cfg.subject.get_model_path()
         self.save_path = main_cfg.subject.get_date_dir()
-        self.epoch_dur = 0.01  # 每0.02秒判断一次  10Hz
-        self.proc_bar_len = main_cfg.stim_cfg.display_cue_duration/self.epoch_dur
+        self.epoch_dur = 0.01  # 每0.02秒(50Hz) * 实际达不到这么高频率 实际2500个点/3min 即0.072s 14Hz
+        # self.proc_bar_len = main_cfg.stim_cfg.display_cue_duration/self.epoch_dur
         self.online_timer = RepeatingTimer(self.epoch_dur, self.online_run)
         self.init_data()
         self.trial_num = 0
@@ -29,7 +29,7 @@ class Processor(PyPublisher):
 
     def init_data(self):
         self.predict_state = False
-        self.is_reached_buffer_len = int(2 / self.epoch_dur)  # 4s一周期(100个epoch)  2s 50个
+        self.is_reached_buffer_len = int(2 / self.epoch_dur)  # 4s一周期(100个epoch)  2s 50个 *这里应该按时长而不是点来计算
         self.is_reached_buffer = []
         self.power_buffer_len = 3  #
         self.power_buffer = []
@@ -114,6 +114,7 @@ class Processor(PyPublisher):
                     self.is_reached_buffer.pop(0)
 
     def is_reached_threshold(self, signal):
+        MI = MIdataset()
         # signal (sample, channal)
         if self.label == StimType.Rest:
             is_eog = np.max(signal[:, -1]) > 250 or np.min(signal[:, -1]) < -250  # vEOG 眨眼
@@ -123,14 +124,14 @@ class Processor(PyPublisher):
                 except IndexError:
                     rela_rest_power = 0
             else:
-                rest_power, rest_power_rp = cal_power_feature(signal, pick_rest_ch, fmin=self.IAF_band[0],
-                                                              fmax=self.IAF_band[1], rp=True)
+                rest_power, rest_power_rp = MI.get_relapower_byarray(signal.T, pick_rest_ch,
+                                                                  fmin=self.IAF_band[0], fmax=self.IAF_band[1])
                 rela_rest_power = (rest_power_rp - self.base_alpha_power) / self.base_alpha_power
             self.rela_rest_power_list.append(rela_rest_power)
             return rela_rest_power, rela_rest_power > self.rest_threshold
         else:  # Left / Right
-            left_power = cal_power_feature(signal, self.left_ch, fmin=8, fmax=30)
-            right_power = cal_power_feature(signal, self.right_ch, fmin=8, fmax=30)
+            left_power = MI.get_power_byarray(signal.T, self.left_ch, fmin=8, fmax=30)
+            right_power = MI.get_power_byarray(signal.T, self.right_ch, fmin=8, fmax=30)
             rela_left_power = (left_power - self.base_leftch_power) / self.base_leftch_power
             rela_right_power = (right_power - self.base_rightch_power) / self.base_rightch_power
             self.rela_left_power_list.append(rela_left_power)
@@ -220,6 +221,7 @@ class Processor(PyPublisher):
             print('no log saved.')
         print('Online log saved successfully.')
 
+
 def testmain():
     from MIdataset_NF import MIdataset
     from BCIConfig import ch_names, ch_types
@@ -246,8 +248,8 @@ def testmain():
     t0 = time.time()
     for i in range(100):
         time.sleep(1)
-        p.base_power_ERDleft = cal_power_feature(p.baseline_signal, p.left_ch, fmin=8, fmax=30)
-        p.base_power_ERDright = cal_power_feature(p.baseline_signal, p.right_ch, fmin=8, fmax=30)
+        # p.base_power_ERDleft = cal_power_feature(p.baseline_signal, p.left_ch, fmin=8, fmax=30)
+        # p.base_power_ERDright = cal_power_feature(p.baseline_signal, p.right_ch, fmin=8, fmax=30)
         is_reached = p.is_reached_threshold(signal1)
         print(time.time()-t0, is_reached)
         t0 = time.time()

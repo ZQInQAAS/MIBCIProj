@@ -45,10 +45,10 @@ def loadnew_npz(filepath, config_path):
     return data_x, data_y, fs
 
 
-def sliding_win(data_x, data_y=None, step=500, window=500):
+def slidingwin(data_x, data_y=None, step=500, window=500, is_shuffle=True):
     """
     滑窗  trial-->epoch , 乱序
-    data_x: T×N×L ndarray 或单个trial T×N  T: 采样点数  N: 通道数  L: 训练数据 trial 总数
+    data_x: T×N×L ndarray 或单个trial T×N  T: 采样点数  N: 通道数  L: 训练数据 trial 总数 (n_times, n_ch, n_epochs)
     data_y: shape (n_samples,)L 个 trial 对应的标签
     data_x_epoch: T×N×L ndarray  T: 一个窗采样点数  N: 通道数  L: 训练数据 epoch 总数
     data_y_epoch: shape (n_samples,)L 个 epoch 对应的标签
@@ -68,8 +68,9 @@ def sliding_win(data_x, data_y=None, step=500, window=500):
             data_x_epoch[:, :, epoch_count] = data_x[start:start + window, :, k]
             epoch_count = epoch_count + 1
     # 打乱次序
-    li = list(range(epoch_num))
-    random.shuffle(li)
-    data_x_epoch = data_x_epoch[:, :, li]
-    data_y_epoch = data_y_epoch[li]
+    if is_shuffle:
+        li = list(range(epoch_num))
+        random.shuffle(li)
+        data_x_epoch = data_x_epoch[:, :, li]
+        data_y_epoch = data_y_epoch[li]
     return data_x_epoch, data_y_epoch

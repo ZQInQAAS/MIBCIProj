@@ -229,11 +229,11 @@ def cal_MR_score(MR_answer, is_pre):
 if __name__ == '__main__':
     import os
     p = os.path.abspath(os.getcwd())
-    p = p + r'\data_set\XY\XY_20210611\MRT_pre_answer.npz'
+    p = p + r'\data_set\CZ\CZ_20210716\MRT_post_answer.npz'
     MRPre_result = dict(np.load(p, allow_pickle=True))
     MR_answer = MRPre_result['MR_answer']
     tlist = MRPre_result['tlist']
-    is_pre = True
+    is_pre = False
     s = cal_MR_score(MR_answer, is_pre)
     # p = r'C:\StrokeEEGProj\codes\MIBCIProj_NF\data_set\LCY\LCY_20210601\MRPre_20210601_1445_53.npz'
     # data = dict(np.load(p, allow_pickle=True))
